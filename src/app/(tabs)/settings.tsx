@@ -3,12 +3,12 @@
  */
 
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSettings } from '@/state/settingsContext';
-import { Palette, Radius, Spacing, Typography } from '@/constants/theme';
+import { Palette } from '@/constants/theme';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -250,44 +250,52 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Palette.spaceNavy,
+    backgroundColor: '#070F1E',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    backgroundColor: 'rgba(7, 15, 30, 0.95)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
   },
   title: {
-    ...Typography.titleLarge,
-    color: Palette.textPrimaryDark,
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
   },
   subtitle: {
-    ...Typography.bodySmall,
-    color: Palette.cyanGlow,
+    fontSize: 13,
+    color: '#38BDF8',
+    marginTop: 2,
   },
   scrollContent: {
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.xxxl,
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 40,
   },
   section: {
-    marginBottom: Spacing.lg,
+    marginBottom: 16,
   },
   sectionHeader: {
-    ...Typography.titleSmall,
-    color: Palette.textSecondaryDark,
-    marginBottom: Spacing.sm,
+    fontSize: 13,
+    color: 'rgba(226, 232, 240, 0.7)',
+    marginBottom: 8,
     fontWeight: '700',
+    textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   settingCard: {
-    backgroundColor: Palette.cardSurface,
-    borderRadius: Radius.lg,
-    padding: Spacing.md,
-    marginBottom: Spacing.sm,
+    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 10,
     borderWidth: 1,
-    borderColor: Palette.cardBorder,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   settingRow: {
     flexDirection: 'row',
@@ -299,49 +307,49 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   settingTitle: {
-    ...Typography.bodyMedium,
-    color: Palette.textPrimaryDark,
+    fontSize: 15,
+    color: '#FFFFFF',
     fontWeight: '600',
   },
   settingDesc: {
-    ...Typography.caption,
-    color: Palette.textMutedDark,
+    fontSize: 12,
+    color: 'rgba(226, 232, 240, 0.55)',
     marginTop: 2,
   },
   segmentToggle: {
     flexDirection: 'row',
-    backgroundColor: Palette.deepSlate,
-    borderRadius: Radius.pill,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 16,
     padding: 3,
     borderWidth: 1,
-    borderColor: Palette.cardBorder,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   segmentBtn: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     paddingVertical: 6,
-    borderRadius: Radius.pill,
+    borderRadius: 12,
   },
   segmentBtnActive: {
-    backgroundColor: Palette.cyanGlow,
+    backgroundColor: '#38BDF8',
   },
   segmentText: {
-    ...Typography.caption,
-    color: Palette.textSecondaryDark,
+    fontSize: 12,
+    color: 'rgba(226, 232, 240, 0.7)',
     fontWeight: '700',
   },
   segmentTextActive: {
-    color: Palette.spaceNavy,
+    color: '#070F1E',
   },
   navRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: Palette.cardSurface,
-    borderRadius: Radius.lg,
-    padding: Spacing.md,
-    marginBottom: Spacing.sm,
+    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 10,
     borderWidth: 1,
-    borderColor: Palette.cardBorder,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   navLeft: {
     flexDirection: 'row',
@@ -349,55 +357,55 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   navTitle: {
-    ...Typography.bodyMedium,
-    color: Palette.textPrimaryDark,
+    fontSize: 15,
+    color: '#FFFFFF',
     fontWeight: '600',
   },
   navDesc: {
-    ...Typography.caption,
-    color: Palette.textSecondaryDark,
+    fontSize: 12,
+    color: 'rgba(226, 232, 240, 0.6)',
     marginTop: 2,
   },
   aboutCard: {
-    backgroundColor: Palette.cardSurface,
-    borderRadius: Radius.lg,
-    padding: Spacing.md,
+    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    borderRadius: 20,
+    padding: 16,
     borderWidth: 1,
-    borderColor: Palette.cardBorder,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   aboutRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 6,
+    paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: Palette.cardBorderSubtle,
+    borderBottomColor: 'rgba(255, 255, 255, 0.04)',
   },
   aboutKey: {
-    ...Typography.bodySmall,
-    color: Palette.textSecondaryDark,
+    fontSize: 13,
+    color: 'rgba(226, 232, 240, 0.65)',
   },
   aboutVal: {
-    ...Typography.bodySmall,
-    color: Palette.textPrimaryDark,
+    fontSize: 13,
+    color: '#FFFFFF',
     fontWeight: '600',
   },
   attrCard: {
-    backgroundColor: Palette.cardSurface,
-    borderRadius: Radius.md,
-    padding: Spacing.md,
-    marginBottom: Spacing.sm,
+    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 10,
     borderWidth: 1,
-    borderColor: Palette.cardBorder,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   attrTitle: {
-    ...Typography.bodySmall,
-    color: Palette.cyanGlow,
+    fontSize: 14,
+    color: '#38BDF8',
     fontWeight: '700',
   },
   attrDesc: {
-    ...Typography.caption,
-    color: Palette.textSecondaryDark,
+    fontSize: 12,
+    color: 'rgba(226, 232, 240, 0.65)',
     marginTop: 4,
-    lineHeight: 16,
+    lineHeight: 18,
   },
 });

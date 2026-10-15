@@ -6,17 +6,17 @@
 import { Platform } from 'react-native';
 
 export const Palette = {
-  // Deep atmospheric tones
-  spaceNavy: '#0A0F1D',
-  deepSlate: '#0F172A',
-  cardSlate: '#1E293B',
-  cardSurface: '#162033',
-  cardBorder: '#334155',
-  cardBorderSubtle: 'rgba(148, 163, 184, 0.15)',
+  // Deep atmospheric tones (Midnight Blue Theme)
+  spaceNavy: '#070F1E',
+  deepSlate: '#0B172E',
+  cardSlate: '#0F2142',
+  cardSurface: 'rgba(16, 36, 70, 0.65)',
+  cardBorder: 'rgba(255, 255, 255, 0.08)',
+  cardBorderSubtle: 'rgba(255, 255, 255, 0.04)',
   
   // Accents
   cyanAccent: '#06B6D4',
-  cyanGlow: '#22D3EE',
+  cyanGlow: '#38BDF8',
   azureBlue: '#38BDF8',
   indigoPulse: '#6366F1',
   violetMisty: '#8B5CF6',
@@ -26,9 +26,9 @@ export const Palette = {
 
   // Grayscale & Text
   white: '#FFFFFF',
-  textPrimaryDark: '#F8FAFC',
-  textSecondaryDark: '#94A3B8',
-  textMutedDark: '#64748B',
+  textPrimaryDark: '#FFFFFF',
+  textSecondaryDark: 'rgba(226, 232, 240, 0.75)',
+  textMutedDark: 'rgba(226, 232, 240, 0.45)',
 
   textPrimaryLight: '#0F172A',
   textSecondaryLight: '#475569',
@@ -49,19 +49,19 @@ export const Colors = {
     cardElevated: Palette.cardSlate,
     cardBorder: Palette.cardBorder,
     borderSubtle: Palette.cardBorderSubtle,
-    primary: Palette.cyanAccent,
+    primary: Palette.azureBlue,
     primaryGlow: Palette.cyanGlow,
     accent: Palette.azureBlue,
     success: Palette.emeraldFresh,
     warning: Palette.amberWarning,
     error: Palette.roseAlert,
-    tabBarBackground: '#0B1120',
-    tabBarBorder: '#1E293B',
-    tabBarActive: Palette.cyanGlow,
-    tabBarInactive: '#64748B',
+    tabBarBackground: '#070F1E',
+    tabBarBorder: 'rgba(255, 255, 255, 0.08)',
+    tabBarActive: '#38BDF8',
+    tabBarInactive: 'rgba(226, 232, 240, 0.45)',
     chartLine: Palette.cyanGlow,
-    chartGrid: 'rgba(148, 163, 184, 0.12)',
-    chartFill: 'rgba(34, 211, 238, 0.15)',
+    chartGrid: 'rgba(255, 255, 255, 0.08)',
+    chartFill: 'rgba(56, 189, 248, 0.15)',
   },
   light: {
     text: Palette.textPrimaryLight,
@@ -150,8 +150,8 @@ export const Spacing = {
 export const Radius = {
   xs: 4,
   sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 20,
+  md: 14,
+  lg: 20,
+  xl: 24,
   pill: 9999,
 } as const;
