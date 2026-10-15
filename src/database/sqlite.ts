@@ -312,6 +312,39 @@ class SQLiteService {
   }
 
   /**
+   * Retrieve the latest cached weather record and location for direct/fallback sync
+   */
+  async getLatestWeatherRecordForSync(): Promise<{ location: any; weather: any } | null> {
+    await this.initialize();
+    const wRes = await this.adapter.execute(
+      `SELECT * FROM weather_records ORDER BY timestamp DESC LIMIT 1;`
+    );
+    if (!wRes.rows || wRes.rows.length === 0) return null;
+    const w = wRes.rows[0];
+
+    const locRes = await this.adapter.execute(
+      `SELECT * FROM locations WHERE id = ? LIMIT 1;`,
+      [w.location_id]
+    );
+    const loc = locRes.rows && locRes.rows.length > 0
+      ? locRes.rows[0]
+      : { id: w.location_id, name: 'Local City', country: '' };
+
+    return { location: loc, weather: w };
+  }
+
+  /**
+   * Mark weather records as synced
+   */
+  async markWeatherRecordSynced(id: string): Promise<void> {
+    await this.initialize();
+    await this.adapter.execute(
+      `UPDATE weather_records SET synced_to_firebase = 1 WHERE id = ?;`,
+      [id]
+    );
+  }
+
+  /**
    * Get database summary diagnostics
    */
   async getDatabaseSummary(): Promise<DatabaseSummaryStats> {
@@ -324,7 +357,7 @@ class SQLiteService {
       this.adapter.execute('SELECT COUNT(*) AS count FROM air_quality_records;'),
       this.adapter.execute('SELECT COUNT(*) AS count FROM xml_imports;'),
       this.adapter.execute('SELECT COUNT(*) AS count FROM xml_weather_records;'),
-      this.adapter.execute("SELECT COUNT(*) AS count FROM sync_queue WHERE status = 'PENDING';"),
+      this.adapter.execute("SELECT COUNT(*) AS count FROM sync_queue WHERE status = 'PENDING' OR status = 'FAILED';"),
     ]);
 
     const latestW = await this.adapter.execute('SELECT timestamp FROM weather_records ORDER BY timestamp DESC LIMIT 1;');
@@ -341,6 +374,7 @@ class SQLiteService {
       lastWriteTimestamp: lastWrite,
     };
   }
+
 
   /**
    * Clear all local tables (for testing or reset)

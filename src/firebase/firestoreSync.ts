@@ -99,7 +99,68 @@ class FirestoreSyncService {
 
     try {
       const pendingItems = await sqliteService.getPendingSyncItems(50);
+
+      // If queue is empty, attempt to sync latest local weather record directly so manual sync is never a no-op
       if (pendingItems.length === 0) {
+        const fallback = await sqliteService.getLatestWeatherRecordForSync();
+        if (fallback) {
+          const loc = fallback.location;
+          const cur = fallback.weather;
+          const fallbackBatch = writeBatch(db);
+
+          const locRef = doc(db, 'locations', loc.id);
+          fallbackBatch.set(locRef, {
+            id: String(loc.id),
+            name: String(loc.name || 'Current City'),
+            country: String(loc.country || ''),
+            latitude: Number(loc.latitude) || 0,
+            longitude: Number(loc.longitude) || 0,
+            timezone: loc.timezone || null,
+            lastUpdated: serverTimestamp(),
+          }, { merge: true });
+
+          const tempVal = Number(cur.temperature) || 0;
+          const weatherRef = doc(db, 'weatherRecords', cur.id);
+          fallbackBatch.set(weatherRef, {
+            id: String(cur.id),
+            locationId: String(loc.id),
+            locationName: String(loc.name || 'Current City'),
+            temperature: tempVal,
+            apparentTemperature: Number(cur.apparent_temperature ?? tempVal) || 0,
+            humidity: Number(cur.relative_humidity) || 0,
+            precipitation: Number(cur.precipitation) || 0,
+            windSpeed: Number(cur.wind_speed) || 0,
+            windDirection: Number(cur.wind_direction) || 0,
+            pressure: Number(cur.pressure) || 1013,
+            weatherCode: Number(cur.weather_code) || 0,
+            condition: String(cur.weather_description || 'Clear'),
+            observationTime: String(cur.timestamp || new Date().toISOString()),
+            uploadedAt: serverTimestamp(),
+          }, { merge: true });
+
+          const commitWithTimeout = Promise.race([
+            fallbackBatch.commit(),
+            new Promise<never>((_, reject) =>
+              setTimeout(() => reject(new Error('Firestore commit timed out after 12 seconds')), 12000)
+            ),
+          ]);
+          await commitWithTimeout;
+
+          await sqliteService.markWeatherRecordSynced(cur.id);
+
+          this.lastSyncTime = new Date().toISOString();
+          this.totalSyncedCount += 1;
+
+          return {
+            success: true,
+            isConfigured: true,
+            recordsSynced: 1,
+            recordsFailed: 0,
+            timestamp: this.lastSyncTime,
+            message: `Successfully synchronized current local weather for ${loc.name} to Firestore.`,
+          };
+        }
+
         this.isSyncing = false;
         return {
           success: true,
@@ -126,47 +187,57 @@ class FirestoreSyncService {
             if (loc && loc.id) {
               const locRef = doc(db, 'locations', loc.id);
               batch.set(locRef, {
-                id: loc.id,
-                name: loc.name,
-                country: loc.country,
-                latitude: loc.latitude,
-                longitude: loc.longitude,
+                id: String(loc.id),
+                name: String(loc.name || 'Unknown Location'),
+                country: String(loc.country || ''),
+                latitude: Number(loc.latitude) || 0,
+                longitude: Number(loc.longitude) || 0,
                 timezone: loc.timezone || null,
                 lastUpdated: serverTimestamp(),
               }, { merge: true });
             }
 
             // 2. Weather record document
+            const tempVal = Number(cur?.temperature) || 0;
             const weatherRef = doc(db, 'weatherRecords', item.entity_id);
             batch.set(weatherRef, {
-              id: item.entity_id,
-              locationId: loc.id,
-              locationName: loc.name,
-              temperature: cur.temperature,
-              apparentTemperature: cur.apparentTemperature,
-              humidity: cur.relativeHumidity,
-              precipitation: cur.precipitation,
-              windSpeed: cur.windSpeed,
-              windDirection: cur.windDirection,
-              pressure: cur.pressure,
-              weatherCode: cur.weatherCode,
-              condition: cur.weatherDescription,
-              observationTime: cur.time,
+              id: String(item.entity_id),
+              locationId: String(loc?.id || 'unknown'),
+              locationName: String(loc?.name || 'Unknown'),
+              temperature: tempVal,
+              apparentTemperature: Number(cur?.apparentTemperature ?? tempVal) || 0,
+              humidity: Number(cur?.relativeHumidity) || 0,
+              precipitation: Number(cur?.precipitation) || 0,
+              windSpeed: Number(cur?.windSpeed) || 0,
+              windDirection: Number(cur?.windDirection) || 0,
+              pressure: Number(cur?.pressure) || 1013,
+              weatherCode: Number(cur?.weatherCode) || 0,
+              condition: String(cur?.weatherDescription || 'Fair'),
+              observationTime: String(cur?.time || new Date().toISOString()),
               uploadedAt: serverTimestamp(),
             }, { merge: true });
 
             stagedItemIds.push(item.id);
           } else if (item.entity_type === 'xml_import') {
+            const sourceUrl = String(
+              payload.sourceUrl ||
+              payload.sourceEndpoint ||
+              'https://api.met.no/weatherapi/locationforecast/2.0/classic'
+            );
             const xmlRef = doc(db, 'xmlImports', item.entity_id);
             batch.set(xmlRef, {
-              importId: item.entity_id,
-              sourceEndpoint: payload.sourceEndpoint,
-              recordCount: payload.recordCount,
+              importId: String(item.entity_id),
+              sourceUrl,
+              sourceEndpoint: sourceUrl,
+              recordCount: Number(payload.recordCount || (payload.sampleRecords?.length ?? 0)),
               sampleRecords: payload.sampleRecords || [],
               uploadedAt: serverTimestamp(),
             }, { merge: true });
 
             stagedItemIds.push(item.id);
+          } else {
+            failedInRun++;
+            await sqliteService.updateSyncItemStatus(item.id, 'FAILED', `Unsupported entity: ${item.entity_type}`);
           }
         } catch (itemErr: any) {
           failedInRun++;
@@ -186,8 +257,14 @@ class FirestoreSyncService {
         };
       }
 
-      // Commit the batch to Firestore
-      await batch.commit();
+      // Commit the batch to Firestore with 12s timeout to prevent hanging on dropped mobile streams
+      const commitWithTimeout = Promise.race([
+        batch.commit(),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Firestore commit timed out after 12 seconds')), 12000)
+        ),
+      ]);
+      await commitWithTimeout;
 
       // Only mark items as COMPLETED after successful commit
       for (const id of stagedItemIds) {
@@ -226,6 +303,7 @@ class FirestoreSyncService {
     } finally {
       this.isSyncing = false;
     }
+
   }
 
   /**
@@ -263,10 +341,11 @@ class FirestoreSyncService {
 
       batch.set(importRef, {
         id: importDocId,
-        sourceUrl: report.sourceEndpoint,
+        sourceUrl: String(report.sourceEndpoint || 'https://api.met.no/weatherapi/locationforecast/2.0/classic'),
+        sourceEndpoint: String(report.sourceEndpoint || 'https://api.met.no/weatherapi/locationforecast/2.0/classic'),
         contentType: report.contentType,
         statusCode: report.statusCode,
-        recordCount: report.parsedRecordCount,
+        recordCount: Number(report.parsedRecordCount) || 0,
         fetchedAt: report.fetchedAt,
         uploadedAt: serverTimestamp(),
       });
@@ -276,20 +355,27 @@ class FirestoreSyncService {
       for (const rec of recordsToUpload) {
         const recRef = doc(db, 'xmlWeatherRecords', rec.id);
         batch.set(recRef, {
-          id: rec.id,
+          id: String(rec.id),
           importId: importDocId,
-          timestamp: rec.timestamp,
-          locationName: rec.locationName,
-          temperatureC: rec.temperatureC,
-          humidityPercent: rec.humidityPercent ?? null,
-          pressureHpa: rec.pressureHpa ?? null,
-          windSpeedMps: rec.windSpeedMps ?? null,
-          weatherCondition: rec.weatherCondition ?? null,
+          timestamp: String(rec.timestamp),
+          locationName: String(rec.locationName || 'Unknown'),
+          temperatureC: Number(rec.temperatureC) || 0,
+          humidityPercent: rec.humidityPercent != null ? Number(rec.humidityPercent) : null,
+          pressureHpa: rec.pressureHpa != null ? Number(rec.pressureHpa) : null,
+          windSpeedMps: rec.windSpeedMps != null ? Number(rec.windSpeedMps) : null,
+          weatherCondition: rec.weatherCondition != null ? String(rec.weatherCondition) : null,
           uploadedAt: serverTimestamp(),
         });
       }
 
-      await batch.commit();
+      const commitWithTimeout = Promise.race([
+        batch.commit(),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Firestore commit timed out after 12 seconds')), 12000)
+        ),
+      ]);
+      await commitWithTimeout;
+
 
       this.lastSyncTime = new Date().toISOString();
       this.totalSyncedCount += recordsToUpload.length + 1;

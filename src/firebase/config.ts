@@ -5,7 +5,7 @@
  */
 
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getFirestore, Firestore } from 'firebase/firestore';
+import { getFirestore, initializeFirestore, Firestore } from 'firebase/firestore';
 
 export interface FirebaseStatusInfo {
   isConfigured: boolean;
@@ -34,7 +34,14 @@ const hasProjectId = Boolean(firebaseConfig.projectId && !firebaseConfig.project
 if (hasApiKey && hasProjectId) {
   try {
     app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-    firestoreDb = getFirestore(app);
+    try {
+      // Use auto-detect long polling for resilience on mobile networks (prevents WebSocket drops)
+      firestoreDb = initializeFirestore(app, {
+        experimentalAutoDetectLongPolling: true,
+      });
+    } catch {
+      firestoreDb = getFirestore(app);
+    }
     isConfigured = true;
     configStatusMessage = `Connected to Firestore project: ${firebaseConfig.projectId}`;
     console.log('[Firebase] Initialized Firestore successfully for project:', firebaseConfig.projectId);
@@ -43,6 +50,7 @@ if (hasApiKey && hasProjectId) {
     configStatusMessage = `Initialization error: ${err.message}`;
     console.warn('[Firebase] Initialization error:', err.message);
   }
+
 } else {
   isConfigured = false;
   configStatusMessage = 'Unconfigured: Environment variables missing. Operating in Local-Only SQLite mode.';
