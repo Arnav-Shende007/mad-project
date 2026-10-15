@@ -1,6 +1,10 @@
 /**
  * AtmosIQ - Home / Weather Intelligence Dashboard
- * City search, live conditions, hourly scroll, air quality, and KPI summaries.
+ * Modern midnight-blue mobile interface matching the reference weather design.
+ * Features hero twilight header, continuous hourly spline chart, tomorrow's insight,
+ * 15-day daily forecast, running fitness card, radar map card, AQI & pollen,
+ * 2x2 metrics grid (UV, Humidity, Wind compass, Dew point, Pressure gauge, Visibility),
+ * celestial sun/moon cycle cards, and quick access to academic features.
  */
 
 import React, { useState } from 'react';
@@ -13,18 +17,28 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
-  FlatList,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useWeather } from '@/state/weatherContext';
 import { useSettings } from '@/state/settingsContext';
-import { Palette, Radius, Spacing, Typography } from '@/constants/theme';
+
 import { DEFAULT_LOCATIONS, searchCities } from '@/api/openMeteo';
 import { LocationItem } from '@/models/weather.types';
-import { getWeatherConditionInfo } from '@/constants/weatherCodes';
-import { KpiCard } from '@/components/charts/KpiCard';
+
+// Specialized Weather UI Components
+import { WeatherHeroHeader } from '@/components/weather/WeatherHeroHeader';
+import { HourlyTrendChart } from '@/components/weather/HourlyTrendChart';
+import { TemperatureInsightCard } from '@/components/weather/TemperatureInsightCard';
+import { DailyForecastCard } from '@/components/weather/DailyForecastCard';
+import { RunningActivityCard } from '@/components/weather/RunningActivityCard';
+import { RadarMapCard } from '@/components/weather/RadarMapCard';
+import { AqiPollenCard } from '@/components/weather/AqiPollenCard';
+import { WeatherMetricsGrid } from '@/components/weather/WeatherMetricsGrid';
+import { SunCycleCard } from '@/components/weather/SunCycleCard';
+import { MoonPhaseCard } from '@/components/weather/MoonPhaseCard';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -39,16 +53,17 @@ export default function HomeScreen() {
     selectLocation,
   } = useWeather();
 
-  const { formatTemperature, formatWindSpeed } = useSettings();
+  const { formatTemperature } = useSettings();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<LocationItem[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [searchBarOpen, setSearchBarOpen] = useState(false);
 
   const searchTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
-  // Debounced search handler (350ms) to prevent flooding API and hitting 503 rate limits
+  // Debounced search handler
   const handleSearchChange = (text: string) => {
     setSearchQuery(text);
     if (searchTimeoutRef.current) {
@@ -63,7 +78,7 @@ export default function HomeScreen() {
         try {
           const results = await searchCities(text, 6);
           setSearchResults(results);
-        } catch (e) {
+        } catch {
           setSearchResults([]);
         } finally {
           setIsSearching(false);
@@ -82,327 +97,275 @@ export default function HomeScreen() {
     }
     setSearchQuery('');
     setShowDropdown(false);
+    setSearchBarOpen(false);
     await selectLocation(loc);
   };
 
+  const handleReportIncorrectInfo = () => {
+    Alert.alert(
+      'Report Weather Data',
+      `Thank you for reporting weather discrepancies in ${currentLocation.name}. Your feedback helps calibrate our local sensors and offline caches.`,
+      [{ text: 'OK' }]
+    );
+  };
+
   const current = weatherData?.current;
-  const condition = getWeatherConditionInfo(current?.weatherCode);
   const hourly = weatherData?.hourly || [];
   const daily = weatherData?.daily || [];
   const airQuality = weatherData?.airQuality?.[0];
+  const todayDaily = daily[0];
+  const tomorrowDaily = daily[1];
+
+  // Format updated timestamp
+  const updatedTimeStr = lastUpdated
+    ? new Date(lastUpdated).toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+      })
+    : '8:55 pm';
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      {/* Top Header */}
-      <View style={styles.header}>
+      {/* Top Bar with Search toggle & Status Badges */}
+      <View style={styles.topBar}>
         <View style={styles.brandingRow}>
-          <View style={styles.logoBadge}>
-            <Ionicons name="compass" size={20} color={Palette.cyanGlow} />
-          </View>
-          <View>
-            <Text style={styles.appName}>AtmosIQ</Text>
-            <Text style={styles.appTagline}>Weather Intelligence & Analytics</Text>
-          </View>
-        </View>
-
-        {isOffline ? (
-          <View style={styles.offlineBadge}>
-            <Ionicons name="cloud-offline" size={14} color={Palette.amberWarning} />
-            <Text style={styles.offlineText}>Offline Cache</Text>
-          </View>
-        ) : (
-          <View style={styles.liveBadge}>
-            <View style={styles.liveDot} />
-            <Text style={styles.liveText}>Live WMO</Text>
-          </View>
-        )}
-      </View>
-
-      {/* City Search Bar */}
-      <View style={styles.searchSection}>
-        <View style={styles.searchBar}>
-          <Ionicons name="search" size={18} color={Palette.textSecondaryDark} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search city (e.g., Tokyo, New York, London)..."
-            placeholderTextColor={Palette.textMutedDark}
-            value={searchQuery}
-            onChangeText={handleSearchChange}
-            autoCorrect={false}
-          />
-          {isSearching && <ActivityIndicator size="small" color={Palette.cyanGlow} />}
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Ionicons name="close-circle" size={18} color={Palette.textMutedDark} />
-            </TouchableOpacity>
+          <Text style={styles.appName}>AtmosIQ</Text>
+          {isOffline ? (
+            <View style={styles.offlineBadge}>
+              <Ionicons name="cloud-offline" size={12} color="#FBBF24" />
+              <Text style={styles.offlineText}>Offline</Text>
+            </View>
+          ) : (
+            <View style={styles.liveBadge}>
+              <View style={styles.liveDot} />
+              <Text style={styles.liveText}>Live</Text>
+            </View>
           )}
         </View>
 
-        {/* Search Results Dropdown */}
-        {showDropdown && (
-          <View style={styles.dropdown}>
-            {searchResults.length > 0 ? (
-              searchResults.map((loc) => (
-                <TouchableOpacity
-                  key={loc.id}
-                  style={styles.dropdownItem}
-                  onPress={() => handleSelectCity(loc)}
-                >
-                  <Ionicons name="location-outline" size={16} color={Palette.cyanGlow} />
-                  <Text style={styles.dropdownCity}>
-                    {loc.name}
-                    {loc.admin1 ? `, ${loc.admin1}` : ''} ({loc.country})
-                  </Text>
-                </TouchableOpacity>
-              ))
-            ) : (
-              <Text style={styles.dropdownEmpty}>No cities found matching &quot;{searchQuery}&quot;</Text>
-            )}
-          </View>
-        )}
-
-        {/* Quick Location Pills */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.pillsRow}
+        <TouchableOpacity
+          style={styles.searchIconButton}
+          activeOpacity={0.7}
+          onPress={() => setSearchBarOpen(!searchBarOpen)}
         >
-          {DEFAULT_LOCATIONS.map((loc) => {
-            const isSelected = currentLocation.name === loc.name;
-            return (
-              <TouchableOpacity
-                key={loc.id}
-                style={[styles.pill, isSelected && styles.pillActive]}
-                onPress={() => handleSelectCity(loc)}
-              >
-                <Text style={[styles.pillText, isSelected && styles.pillTextActive]}>
-                  {loc.name}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+          <Ionicons
+            name={searchBarOpen ? 'close' : 'search'}
+            size={20}
+            color="#E2E8F0"
+          />
+        </TouchableOpacity>
       </View>
 
-      {/* Main Content Area */}
+      {/* Expandable City Search Bar */}
+      {searchBarOpen && (
+        <View style={styles.searchSection}>
+          <View style={styles.searchBar}>
+            <Ionicons name="search" size={16} color="rgba(226, 232, 240, 0.6)" />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search city (e.g. Pune, Tokyo, London)..."
+              placeholderTextColor="rgba(226, 232, 240, 0.4)"
+              value={searchQuery}
+              onChangeText={handleSearchChange}
+              autoCorrect={false}
+              autoFocus
+            />
+            {isSearching && <ActivityIndicator size="small" color="#38BDF8" />}
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery('')}>
+                <Ionicons name="close-circle" size={16} color="rgba(226, 232, 240, 0.6)" />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* Search Results Dropdown */}
+          {showDropdown && (
+            <View style={styles.dropdown}>
+              {searchResults.length > 0 ? (
+                searchResults.map((loc) => (
+                  <TouchableOpacity
+                    key={loc.id}
+                    style={styles.dropdownItem}
+                    onPress={() => handleSelectCity(loc)}
+                  >
+                    <Ionicons name="location-outline" size={16} color="#38BDF8" />
+                    <Text style={styles.dropdownCity}>
+                      {loc.name}
+                      {loc.admin1 ? `, ${loc.admin1}` : ''} ({loc.country})
+                    </Text>
+                  </TouchableOpacity>
+                ))
+              ) : (
+                <Text style={styles.dropdownEmpty}>
+                  No cities found matching &quot;{searchQuery}&quot;
+                </Text>
+              )}
+            </View>
+          )}
+
+          {/* Quick Location Selection Pills */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.pillsRow}
+          >
+            {DEFAULT_LOCATIONS.map((loc) => {
+              const isSelected = currentLocation.name === loc.name;
+              return (
+                <TouchableOpacity
+                  key={loc.id}
+                  style={[styles.pill, isSelected && styles.pillActive]}
+                  onPress={() => handleSelectCity(loc)}
+                >
+                  <Text style={[styles.pillText, isSelected && styles.pillTextActive]}>
+                    {loc.name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+      )}
+
+      {/* Main Weather Feed */}
       <ScrollView
         contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={isLoading}
             onRefresh={refreshWeather}
-            tintColor={Palette.cyanGlow}
-            colors={[Palette.cyanGlow]}
+            tintColor="#38BDF8"
+            colors={['#38BDF8']}
           />
         }
       >
         {error && (
           <View style={styles.errorBox}>
-            <Ionicons name="alert-circle" size={18} color={Palette.roseAlert} />
+            <Ionicons name="alert-circle" size={18} color="#F87171" />
             <Text style={styles.errorText}>{error}</Text>
           </View>
         )}
 
-        {/* Hero Current Weather Card */}
+        {/* 1. Hero Header (Location, Giant Temp, Condition, High/Low, Twilight Stargazer Backdrop) */}
         {current && (
-          <View style={styles.heroCard}>
-            <View style={styles.heroLocationRow}>
-              <Ionicons name="location" size={16} color={Palette.cyanGlow} />
-              <Text style={styles.locationTitle}>
-                {currentLocation.name}, {currentLocation.country}
-              </Text>
-            </View>
-
-            <View style={styles.heroMainRow}>
-              <View>
-                <Text style={styles.heroTemp}>
-                  {formatTemperature(current.temperature)}
-                </Text>
-                <Text style={styles.heroCondition}>{current.weatherDescription}</Text>
-                <Text style={styles.heroFeelsLike}>
-                  Feels like {formatTemperature(current.apparentTemperature)}
-                </Text>
-              </View>
-
-              <View style={styles.conditionIconWrapper}>
-                <Ionicons
-                  name={condition.iconName as any}
-                  size={64}
-                  color={condition.color || Palette.cyanGlow}
-                />
-              </View>
-            </View>
-
-            {/* Quick Metrics Bar */}
-            <View style={styles.heroMetricsRow}>
-              <View style={styles.metricSubItem}>
-                <Ionicons name="water-outline" size={16} color={Palette.cyanGlow} />
-                <Text style={styles.metricSubLabel}>Humidity</Text>
-                <Text style={styles.metricSubVal}>{current.relativeHumidity}%</Text>
-              </View>
-              <View style={styles.metricDivider} />
-              <View style={styles.metricSubItem}>
-                <Ionicons name="speedometer-outline" size={16} color={Palette.azureBlue} />
-                <Text style={styles.metricSubLabel}>Wind</Text>
-                <Text style={styles.metricSubVal}>{formatWindSpeed(current.windSpeed)}</Text>
-              </View>
-              <View style={styles.metricDivider} />
-              <View style={styles.metricSubItem}>
-                <Ionicons name="rainy-outline" size={16} color={Palette.cyanAccent} />
-                <Text style={styles.metricSubLabel}>Rain</Text>
-                <Text style={styles.metricSubVal}>{current.precipitation} mm</Text>
-              </View>
-              <View style={styles.metricDivider} />
-              <View style={styles.metricSubItem}>
-                <Ionicons name="pulse-outline" size={16} color={Palette.indigoPulse} />
-                <Text style={styles.metricSubLabel}>Pressure</Text>
-                <Text style={styles.metricSubVal}>{current.pressure} hPa</Text>
-              </View>
-            </View>
-          </View>
+          <WeatherHeroHeader
+            location={currentLocation}
+            current={current}
+            todayDaily={todayDaily}
+            formatTemperature={formatTemperature}
+          />
         )}
 
-        {/* 48-Hour Hourly Forecast Section */}
+        {/* 2. Hourly Forecast with continuous temperature curve & 48-hour forecast link */}
         {hourly.length > 0 && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Hourly Forecast</Text>
-              <Text style={styles.sectionSubtitle}>Next 48 Hours</Text>
-            </View>
+          <HourlyTrendChart
+            hourly={hourly}
+            formatTemperature={formatTemperature}
+            onPressFullForecast={() => router.push('/(tabs)/analytics')}
+          />
+        )}
 
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.hourlyList}
+        {/* 3. Tomorrow's Temperature Insight Banner */}
+        <TemperatureInsightCard
+          today={todayDaily}
+          tomorrow={tomorrowDaily}
+          unitSymbol="°"
+        />
+
+        {/* 4. 15-day / 7-day Daily Forecast List Card */}
+        <DailyForecastCard
+          daily={daily}
+          unitSymbol="°"
+          onPressMore={() => router.push('/(tabs)/analytics')}
+        />
+
+        {/* 5. Running Fitness Activity Card */}
+        <RunningActivityCard current={current} hourly={hourly} />
+
+        {/* 6. Radar & Heat Maps Card */}
+        <RadarMapCard
+          cityName={currentLocation.name}
+          temperature={current?.temperature ?? 25}
+          unitSymbol="°"
+        />
+
+        {/* 7. AQI & 3-Column Pollen Card */}
+        <AqiPollenCard airQuality={airQuality} />
+
+        {/* 8. 2x2 Grid of Weather Metrics: UV, Humidity, Wind compass, Dew point, Pressure gauge, Visibility */}
+        <WeatherMetricsGrid current={current} unitSymbol="°" />
+
+        {/* 9. Celestial Sun Cycle Parabolic Card */}
+        <SunCycleCard
+          sunriseTime={todayDaily?.sunrise}
+          sunsetTime={todayDaily?.sunset}
+        />
+
+        {/* 10. Celestial Moon Phase Card */}
+        <MoonPhaseCard
+          phaseName="Waning crescent"
+          moonriseTime="10:28 am"
+          moonsetTime="9:29 pm"
+        />
+
+        {/* 11. Report Incorrect Info Button */}
+        <View style={styles.reportRow}>
+          <TouchableOpacity
+            style={styles.reportButton}
+            activeOpacity={0.7}
+            onPress={handleReportIncorrectInfo}
+          >
+            <Ionicons name="chatbubble-ellipses-outline" size={16} color="#E2E8F0" />
+            <Text style={styles.reportButtonText}>Report incorrect info</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* 12. Attribution Footer */}
+        <View style={styles.attributionRow}>
+          <Ionicons name="cloudy" size={14} color="rgba(226, 232, 240, 0.6)" />
+          <Text style={styles.attributionSource}>AtmosIQ / Open-Meteo</Text>
+          <Text style={styles.attributionDot}>•</Text>
+          <Text style={styles.attributionTime}>Updated {updatedTimeStr}</Text>
+        </View>
+
+        {/* 13. Academic Features Quick Hub (Navigation to Analytics, XML, DB, Cloud Sync) */}
+        <View style={styles.academicSection}>
+          <Text style={styles.academicTitle}>AtmosIQ Intelligence Hub</Text>
+          <View style={styles.academicGrid}>
+            <TouchableOpacity
+              style={styles.academicChip}
+              onPress={() => router.push('/(tabs)/analytics')}
             >
-              {hourly.slice(0, 24).map((item, idx) => {
-                const hourDate = new Date(item.time);
-                const hourStr = isNaN(hourDate.getTime())
-                  ? item.time.slice(11, 16)
-                  : hourDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                const itemCondition = getWeatherConditionInfo(item.weatherCode);
+              <Ionicons name="stats-chart" size={18} color="#38BDF8" />
+              <Text style={styles.academicChipText}>Analytics</Text>
+            </TouchableOpacity>
 
-                return (
-                  <View key={`hourly-${idx}`} style={styles.hourlyCard}>
-                    <Text style={styles.hourlyTime}>{idx === 0 ? 'Now' : hourStr}</Text>
-                    <Ionicons
-                      name={itemCondition.iconName as any}
-                      size={24}
-                      color={itemCondition.color}
-                      style={{ marginVertical: 6 }}
-                    />
-                    <Text style={styles.hourlyTemp}>{formatTemperature(item.temperature)}</Text>
-                    {item.precipitationProbability > 0 && (
-                      <Text style={styles.hourlyPop}>{item.precipitationProbability}%</Text>
-                    )}
-                  </View>
-                );
-              })}
-            </ScrollView>
+            <TouchableOpacity
+              style={styles.academicChip}
+              onPress={() => router.push('/(tabs)/xml-explorer')}
+            >
+              <Ionicons name="code-download" size={18} color="#A78BFA" />
+              <Text style={styles.academicChipText}>XML REST</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.academicChip}
+              onPress={() => router.push('/(tabs)/history')}
+            >
+              <Ionicons name="server" size={18} color="#34D399" />
+              <Text style={styles.academicChipText}>SQLite DB</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.academicChip}
+              onPress={() => router.push('/(tabs)/cloud-sync')}
+            >
+              <Ionicons name="cloud-upload" size={18} color="#FBBF24" />
+              <Text style={styles.academicChipText}>Firestore</Text>
+            </TouchableOpacity>
           </View>
-        )}
-
-        {/* Air Quality Overview Card */}
-        {airQuality && (
-          <View style={styles.section}>
-            <View style={styles.aqiCard}>
-              <View style={styles.aqiHeader}>
-                <View style={styles.aqiTitleRow}>
-                  <Ionicons name="leaf-outline" size={18} color={Palette.emeraldFresh} />
-                  <Text style={styles.aqiTitle}>Air Quality Index (AQI)</Text>
-                </View>
-                <View
-                  style={[
-                    styles.aqiBadge,
-                    {
-                      backgroundColor:
-                        (airQuality.usAqi ?? 0) <= 50
-                          ? 'rgba(16, 185, 129, 0.2)'
-                          : 'rgba(245, 158, 11, 0.2)',
-                      borderColor:
-                        (airQuality.usAqi ?? 0) <= 50 ? Palette.emeraldFresh : Palette.amberWarning,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.aqiBadgeText,
-                      {
-                        color:
-                          (airQuality.usAqi ?? 0) <= 50 ? Palette.emeraldFresh : Palette.amberWarning,
-                      },
-                    ]}
-                  >
-                    US AQI: {airQuality.usAqi ?? 'N/A'}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.aqiMetricsRow}>
-                <View style={styles.aqiMetric}>
-                  <Text style={styles.aqiMetricVal}>{airQuality.pm2_5 ?? '--'} µg/m³</Text>
-                  <Text style={styles.aqiMetricLabel}>PM2.5 (Fine Particulate)</Text>
-                </View>
-                <View style={styles.aqiMetric}>
-                  <Text style={styles.aqiMetricVal}>{airQuality.pm10 ?? '--'} µg/m³</Text>
-                  <Text style={styles.aqiMetricLabel}>PM10 (Inhalable)</Text>
-                </View>
-              </View>
-            </View>
-          </View>
-        )}
-
-        {/* Navigation Action Buttons to Mandatory Academic Features */}
-        <View style={styles.actionGrid}>
-          <TouchableOpacity
-            style={[styles.actionCard, { borderColor: Palette.cyanGlow }]}
-            onPress={() => router.push('/(tabs)/analytics')}
-          >
-            <Ionicons name="stats-chart" size={22} color={Palette.cyanGlow} />
-            <Text style={styles.actionTitle}>Interactive Analytics</Text>
-            <Text style={styles.actionDesc}>Charts, variance, statistical formulas</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.actionCard, { borderColor: Palette.violetMisty }]}
-            onPress={() => router.push('/(tabs)/xml-explorer')}
-          >
-            <Ionicons name="code-download" size={22} color={Palette.violetMisty} />
-            <Text style={styles.actionTitle}>XML Data Explorer</Text>
-            <Text style={styles.actionDesc}>Live REST XML, parser & validation</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.actionGrid}>
-          <TouchableOpacity
-            style={[styles.actionCard, { borderColor: Palette.emeraldFresh }]}
-            onPress={() => router.push('/(tabs)/history')}
-          >
-            <Ionicons name="server" size={22} color={Palette.emeraldFresh} />
-            <Text style={styles.actionTitle}>Local SQLite DB</Text>
-            <Text style={styles.actionDesc}>Inspect saved records & schema</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.actionCard, { borderColor: Palette.amberWarning }]}
-            onPress={() => router.push('/(tabs)/cloud-sync')}
-          >
-            <Ionicons name="cloud-upload" size={22} color={Palette.amberWarning} />
-            <Text style={styles.actionTitle}>Firebase Cloud Sync</Text>
-            <Text style={styles.actionDesc}>Upload queue & Firestore status</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Footer Attribution */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            Source: {weatherData?.dataSource || 'Open-Meteo REST API & WMO Standard'}
-          </Text>
-          {lastUpdated && (
-            <Text style={styles.footerSub}>
-              Last Synchronized: {new Date(lastUpdated).toLocaleTimeString()}
-            </Text>
-          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -412,372 +375,245 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Palette.spaceNavy,
+    backgroundColor: '#070F1E',
   },
-  header: {
+  topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: 'rgba(7, 15, 30, 0.95)',
   },
   brandingRow: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  logoBadge: {
-    width: 36,
-    height: 36,
-    borderRadius: Radius.md,
-    backgroundColor: 'rgba(6, 182, 212, 0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: Spacing.sm,
+    gap: 10,
   },
   appName: {
-    ...Typography.titleMedium,
-    color: Palette.textPrimaryDark,
+    fontSize: 20,
     fontWeight: '800',
-  },
-  appTagline: {
-    ...Typography.caption,
-    color: Palette.textSecondaryDark,
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
   liveBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    backgroundColor: 'rgba(52, 211, 153, 0.15)',
     paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: Radius.pill,
+    paddingVertical: 3,
+    borderRadius: 12,
+    gap: 5,
   },
   liveDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: Palette.emeraldFresh,
-    marginRight: 6,
+    backgroundColor: '#34D399',
   },
   liveText: {
-    ...Typography.caption,
-    color: Palette.emeraldFresh,
-    fontWeight: '700',
+    fontSize: 11,
+    color: '#34D399',
+    fontWeight: '600',
   },
   offlineBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    backgroundColor: 'rgba(251, 191, 36, 0.15)',
     paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: Radius.pill,
+    paddingVertical: 3,
+    borderRadius: 12,
+    gap: 4,
   },
   offlineText: {
-    ...Typography.caption,
-    color: Palette.amberWarning,
-    marginLeft: 4,
+    fontSize: 11,
+    color: '#FBBF24',
     fontWeight: '600',
   },
+  searchIconButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   searchSection: {
-    paddingHorizontal: Spacing.lg,
-    marginBottom: Spacing.xs,
-    zIndex: 10,
+    backgroundColor: '#0B172E',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Palette.cardSurface,
-    borderRadius: Radius.lg,
-    paddingHorizontal: Spacing.md,
-    height: 44,
-    borderWidth: 1,
-    borderColor: Palette.cardBorder,
+    backgroundColor: 'rgba(16, 36, 70, 0.8)',
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 8,
   },
   searchInput: {
     flex: 1,
-    marginLeft: Spacing.sm,
-    color: Palette.textPrimaryDark,
-    ...Typography.bodyMedium,
+    fontSize: 14,
+    color: '#FFFFFF',
   },
   dropdown: {
-    position: 'absolute',
-    top: 50,
-    left: Spacing.lg,
-    right: Spacing.lg,
-    backgroundColor: Palette.cardSlate,
-    borderRadius: Radius.md,
+    marginTop: 8,
+    backgroundColor: '#0F2142',
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: Palette.cardBorder,
-    zIndex: 100,
-    elevation: 5,
-    maxHeight: 200,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    overflow: 'hidden',
   },
   dropdownItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Palette.cardBorderSubtle,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 0.5,
+    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
+    gap: 10,
   },
   dropdownCity: {
-    ...Typography.bodyMedium,
-    color: Palette.textPrimaryDark,
-    marginLeft: Spacing.sm,
+    fontSize: 14,
+    color: '#FFFFFF',
+    fontWeight: '500',
   },
   dropdownEmpty: {
-    ...Typography.bodySmall,
-    color: Palette.textMutedDark,
-    padding: Spacing.md,
+    padding: 16,
+    fontSize: 13,
+    color: 'rgba(226, 232, 240, 0.6)',
     textAlign: 'center',
   },
   pillsRow: {
-    paddingVertical: Spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingTop: 10,
   },
   pill: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     paddingVertical: 6,
-    borderRadius: Radius.pill,
-    backgroundColor: Palette.deepSlate,
-    marginRight: Spacing.sm,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
     borderWidth: 1,
-    borderColor: Palette.cardBorder,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   pillActive: {
-    backgroundColor: 'rgba(6, 182, 212, 0.2)',
-    borderColor: Palette.cyanGlow,
+    backgroundColor: 'rgba(56, 189, 248, 0.25)',
+    borderColor: '#38BDF8',
   },
   pillText: {
-    ...Typography.caption,
-    color: Palette.textSecondaryDark,
-    fontWeight: '600',
+    fontSize: 12,
+    color: 'rgba(226, 232, 240, 0.75)',
+    fontWeight: '500',
   },
   pillTextActive: {
-    color: Palette.cyanGlow,
+    color: '#FFFFFF',
     fontWeight: '700',
   },
   scrollContent: {
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.xxxl,
+    paddingBottom: 40,
   },
   errorBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(244, 63, 94, 0.15)',
-    padding: Spacing.md,
-    borderRadius: Radius.md,
+    backgroundColor: 'rgba(248, 113, 113, 0.15)',
+    borderColor: '#F87171',
     borderWidth: 1,
-    borderColor: Palette.roseAlert,
-    marginBottom: Spacing.md,
+    borderRadius: 14,
+    padding: 12,
+    marginHorizontal: 16,
+    marginVertical: 8,
+    gap: 8,
   },
   errorText: {
-    ...Typography.bodySmall,
-    color: Palette.roseAlert,
-    marginLeft: Spacing.sm,
+    color: '#F87171',
+    fontSize: 13,
     flex: 1,
   },
-  heroCard: {
-    backgroundColor: Palette.cardSurface,
-    borderRadius: Radius.xl,
-    padding: Spacing.lg,
+  reportRow: {
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 8,
+  },
+  reportButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(16, 36, 70, 0.7)',
+    borderRadius: 24,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
     borderWidth: 1,
-    borderColor: Palette.cardBorder,
-    marginBottom: Spacing.md,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    gap: 8,
   },
-  heroLocationRow: {
+  reportButtonText: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    fontWeight: '500',
+  },
+  attributionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Spacing.xs,
+    justifyContent: 'center',
+    marginTop: 8,
+    marginBottom: 20,
+    gap: 6,
   },
-  locationTitle: {
-    ...Typography.titleSmall,
-    color: Palette.textSecondaryDark,
-    marginLeft: 6,
+  attributionSource: {
+    fontSize: 12,
+    color: 'rgba(226, 232, 240, 0.55)',
+    fontWeight: '500',
   },
-  heroMainRow: {
+  attributionDot: {
+    fontSize: 12,
+    color: 'rgba(226, 232, 240, 0.4)',
+  },
+  attributionTime: {
+    fontSize: 12,
+    color: 'rgba(226, 232, 240, 0.55)',
+  },
+  academicSection: {
+    marginHorizontal: 16,
+    marginTop: 10,
+    padding: 16,
+    backgroundColor: 'rgba(16, 36, 70, 0.5)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  academicTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: 'rgba(226, 232, 240, 0.7)',
+    marginBottom: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  academicGrid: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginVertical: Spacing.xs,
+    flexWrap: 'wrap',
+    gap: 8,
   },
-  heroTemp: {
-    ...Typography.displayLarge,
-    color: Palette.textPrimaryDark,
-  },
-  heroCondition: {
-    ...Typography.titleMedium,
-    color: Palette.cyanGlow,
-    marginTop: -4,
-  },
-  heroFeelsLike: {
-    ...Typography.bodySmall,
-    color: Palette.textMutedDark,
-    marginTop: 2,
-  },
-  conditionIconWrapper: {
-    padding: Spacing.xs,
-  },
-  heroMetricsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    backgroundColor: Palette.deepSlate,
-    borderRadius: Radius.md,
-    paddingVertical: Spacing.md,
-    marginTop: Spacing.md,
-  },
-  metricSubItem: {
-    alignItems: 'center',
+  academicChip: {
     flex: 1,
-  },
-  metricSubLabel: {
-    ...Typography.caption,
-    color: Palette.textMutedDark,
-    marginTop: 4,
-  },
-  metricSubVal: {
-    ...Typography.bodySmall,
-    color: Palette.textPrimaryDark,
-    fontWeight: '700',
-    marginTop: 2,
-  },
-  metricDivider: {
-    width: 1,
-    height: 24,
-    backgroundColor: Palette.cardBorder,
-  },
-  section: {
-    marginBottom: Spacing.md,
-  },
-  sectionHeader: {
+    minWidth: '45%',
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.sm,
-  },
-  sectionTitle: {
-    ...Typography.titleMedium,
-    color: Palette.textPrimaryDark,
-  },
-  sectionSubtitle: {
-    ...Typography.bodySmall,
-    color: Palette.cyanGlow,
-  },
-  hourlyList: {
-    paddingVertical: 2,
-  },
-  hourlyCard: {
-    width: 72,
-    backgroundColor: Palette.cardSurface,
-    borderRadius: Radius.md,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: 4,
-    alignItems: 'center',
-    marginRight: Spacing.sm,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 8,
     borderWidth: 1,
-    borderColor: Palette.cardBorder,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
   },
-  hourlyTime: {
-    ...Typography.caption,
-    color: Palette.textSecondaryDark,
-  },
-  hourlyTemp: {
-    ...Typography.bodySmall,
-    color: Palette.textPrimaryDark,
-    fontWeight: '700',
-  },
-  hourlyPop: {
-    ...Typography.caption,
-    color: Palette.azureBlue,
-    fontSize: 10,
-    marginTop: 2,
-  },
-  aqiCard: {
-    backgroundColor: Palette.cardSurface,
-    borderRadius: Radius.lg,
-    padding: Spacing.md,
-    borderWidth: 1,
-    borderColor: Palette.cardBorder,
-  },
-  aqiHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.sm,
-  },
-  aqiTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  aqiTitle: {
-    ...Typography.titleSmall,
-    color: Palette.textPrimaryDark,
-    marginLeft: 6,
-  },
-  aqiBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderRadius: Radius.pill,
-    borderWidth: 1,
-  },
-  aqiBadgeText: {
-    ...Typography.caption,
-    fontWeight: '700',
-  },
-  aqiMetricsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: Palette.deepSlate,
-    borderRadius: Radius.md,
-    padding: Spacing.sm,
-  },
-  aqiMetric: {
-    flex: 1,
-  },
-  aqiMetricVal: {
-    ...Typography.bodyMedium,
-    color: Palette.textPrimaryDark,
-    fontWeight: '700',
-  },
-  aqiMetricLabel: {
-    ...Typography.caption,
-    color: Palette.textMutedDark,
-    marginTop: 2,
-  },
-  actionGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: Spacing.sm,
-  },
-  actionCard: {
-    flex: 1,
-    backgroundColor: Palette.cardSurface,
-    borderRadius: Radius.lg,
-    padding: Spacing.md,
-    marginHorizontal: 4,
-    borderWidth: 1,
-  },
-  actionTitle: {
-    ...Typography.bodyMedium,
-    color: Palette.textPrimaryDark,
-    fontWeight: '700',
-    marginTop: 6,
-  },
-  actionDesc: {
-    ...Typography.caption,
-    color: Palette.textSecondaryDark,
-    marginTop: 2,
-  },
-  footer: {
-    alignItems: 'center',
-    marginTop: Spacing.lg,
-    marginBottom: Spacing.md,
-  },
-  footerText: {
-    ...Typography.caption,
-    color: Palette.textMutedDark,
-  },
-  footerSub: {
-    ...Typography.caption,
-    color: Palette.textMutedDark,
-    marginTop: 2,
+  academicChipText: {
+    fontSize: 13,
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
 });

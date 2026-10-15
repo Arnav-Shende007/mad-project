@@ -32,6 +32,8 @@ export interface CurrentWeather {
   isDay: boolean;
   cloudCover?: number;
   uvIndex?: number;
+  dewPoint?: number;
+  visibility?: number;
 }
 
 export interface HourlyForecastItem {
@@ -45,6 +47,9 @@ export interface HourlyForecastItem {
   windDirection: number;
   pressure: number;
   weatherCode: number;
+  uvIndex?: number;
+  dewPoint?: number;
+  visibility?: number;
 }
 
 export interface DailyForecastItem {

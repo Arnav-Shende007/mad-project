@@ -123,6 +123,8 @@ export async function fetchForecast(latitude: number, longitude: number, timezon
     'wind_direction_10m',
     'is_day',
     'cloud_cover',
+    'dew_point_2m',
+    'visibility',
   ].join(',');
 
   const hourlyParams = [
@@ -135,6 +137,9 @@ export async function fetchForecast(latitude: number, longitude: number, timezon
     'surface_pressure',
     'wind_speed_10m',
     'wind_direction_10m',
+    'uv_index',
+    'dew_point_2m',
+    'visibility',
   ].join(',');
 
   const dailyParams = [
@@ -274,6 +279,9 @@ export async function getCompleteWeatherData(location: LocationItem): Promise<Co
     pressure: Number(cur.surface_pressure ?? 1013),
     isDay: Boolean(cur.is_day ?? 1),
     cloudCover: cur.cloud_cover !== undefined ? Number(cur.cloud_cover) : undefined,
+    uvIndex: forecastResult.daily?.uv_index_max?.[0] !== undefined ? Number(forecastResult.daily.uv_index_max[0]) : undefined,
+    dewPoint: cur.dew_point_2m !== undefined ? Number(cur.dew_point_2m) : undefined,
+    visibility: cur.visibility !== undefined ? Number(cur.visibility) / 1000 : undefined,
   };
 
   // Hourly Forecast (take next 48 hours)
@@ -294,6 +302,9 @@ export async function getCompleteWeatherData(location: LocationItem): Promise<Co
       windDirection: Number(hourlyData.wind_direction_10m?.[i] ?? 0),
       pressure: Number(hourlyData.surface_pressure?.[i] ?? 1013),
       weatherCode: Number(hourlyData.weather_code?.[i] ?? 0),
+      uvIndex: hourlyData.uv_index?.[i] !== undefined ? Number(hourlyData.uv_index[i]) : undefined,
+      dewPoint: hourlyData.dew_point_2m?.[i] !== undefined ? Number(hourlyData.dew_point_2m[i]) : undefined,
+      visibility: hourlyData.visibility?.[i] !== undefined ? Number(hourlyData.visibility[i]) / 1000 : undefined,
     });
   }
 
