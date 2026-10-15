@@ -291,7 +291,7 @@ export default function XmlExplorerScreen() {
                 <Ionicons name="document-text-outline" size={36} color={Palette.textMutedDark} />
                 <Text style={styles.emptyText}>No XML records loaded yet.</Text>
                 <Text style={styles.emptySub}>
-                  Press "Fetch & Parse Live XML Response" to initiate the pipeline.
+                  Press &quot;Fetch &amp; Parse Live XML Response&quot; to initiate the pipeline.
                 </Text>
               </View>
             )}

@@ -43,7 +43,7 @@ export function SyncFlowDiagram() {
           </View>
           <Text style={styles.stepTitle}>2. Sync Queue Enqueue</Text>
           <Text style={styles.stepDesc}>
-            Unsynchronized records enter the SQLite `sync_queue` table with status 'PENDING' and retry counter = 0.
+            Unsynchronized records enter the SQLite `sync_queue` table with status &apos;PENDING&apos; and retry counter = 0.
           </Text>
         </View>
 
@@ -73,7 +73,7 @@ export function SyncFlowDiagram() {
           </View>
           <Text style={styles.stepTitle}>4. Status Resolution</Text>
           <Text style={styles.stepDesc}>
-            On Firestore acknowledgment, records transition to 'COMPLETED'. On network failure, records retry with backoff.
+            On Firestore acknowledgment, records transition to &apos;COMPLETED&apos;. On network failure, records retry with backoff.
           </Text>
         </View>
       </View>

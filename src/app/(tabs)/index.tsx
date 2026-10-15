@@ -156,7 +156,7 @@ export default function HomeScreen() {
                 </TouchableOpacity>
               ))
             ) : (
-              <Text style={styles.dropdownEmpty}>No cities found matching "{searchQuery}"</Text>
+              <Text style={styles.dropdownEmpty}>No cities found matching &quot;{searchQuery}&quot;</Text>
             )}
           </View>
         )}

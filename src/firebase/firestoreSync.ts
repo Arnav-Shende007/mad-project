@@ -25,6 +25,28 @@ export interface SyncResult {
   message: string;
 }
 
+export function parseFirestoreErrorMessage(err: any): string {
+  const msg = err?.message || String(err);
+  if (
+    msg.includes('NOT_FOUND') ||
+    msg.includes('does not exist') ||
+    err?.code === 'not-found'
+  ) {
+    return 'Cloud Firestore database not created yet in Firebase Console. Go to Firebase Console -> Build -> Firestore Database -> Create database.';
+  }
+  if (
+    msg.includes('permission-denied') ||
+    msg.includes('PERMISSION_DENIED') ||
+    err?.code === 'permission-denied'
+  ) {
+    return 'Firestore permission denied. Deploy the Firestore Security Rules in Firebase Console (see README Section 7).';
+  }
+  if (msg.includes('unavailable') || err?.code === 'unavailable') {
+    return 'Firestore service temporarily unavailable. Check your internet connection.';
+  }
+  return msg;
+}
+
 class FirestoreSyncService {
   private isSyncing = false;
   private lastSyncTime: string | null = null;
@@ -73,6 +95,7 @@ class FirestoreSyncService {
     this.isSyncing = true;
     let syncedInRun = 0;
     let failedInRun = 0;
+    const stagedItemIds: string[] = [];
 
     try {
       const pendingItems = await sqliteService.getPendingSyncItems(50);
@@ -132,7 +155,7 @@ class FirestoreSyncService {
               uploadedAt: serverTimestamp(),
             }, { merge: true });
 
-            syncedInRun++;
+            stagedItemIds.push(item.id);
           } else if (item.entity_type === 'xml_import') {
             const xmlRef = doc(db, 'xmlImports', item.entity_id);
             batch.set(xmlRef, {
@@ -143,19 +166,34 @@ class FirestoreSyncService {
               uploadedAt: serverTimestamp(),
             }, { merge: true });
 
-            syncedInRun++;
+            stagedItemIds.push(item.id);
           }
-
-          // Mark item as COMPLETED in SQLite
-          await sqliteService.updateSyncItemStatus(item.id, 'COMPLETED');
         } catch (itemErr: any) {
           failedInRun++;
           await sqliteService.updateSyncItemStatus(item.id, 'FAILED', itemErr.message);
         }
       }
 
-      // Commit the batch
+      if (stagedItemIds.length === 0) {
+        this.isSyncing = false;
+        return {
+          success: failedInRun === 0,
+          isConfigured: true,
+          recordsSynced: 0,
+          recordsFailed: failedInRun,
+          timestamp: new Date().toISOString(),
+          message: failedInRun > 0 ? `Failed to parse ${failedInRun} records.` : 'No valid records to synchronize.',
+        };
+      }
+
+      // Commit the batch to Firestore
       await batch.commit();
+
+      // Only mark items as COMPLETED after successful commit
+      for (const id of stagedItemIds) {
+        await sqliteService.updateSyncItemStatus(id, 'COMPLETED');
+      }
+      syncedInRun = stagedItemIds.length;
 
       this.lastSyncTime = new Date().toISOString();
       this.totalSyncedCount += syncedInRun;
@@ -170,14 +208,20 @@ class FirestoreSyncService {
         message: `Successfully synchronized ${syncedInRun} records to Firestore.`,
       };
     } catch (err: any) {
-      this.totalFailedCount += 1;
+      const friendlyError = parseFirestoreErrorMessage(err);
+      for (const id of stagedItemIds) {
+        await sqliteService.updateSyncItemStatus(id, 'FAILED', friendlyError);
+      }
+      failedInRun += stagedItemIds.length;
+      this.totalFailedCount += failedInRun;
+
       return {
         success: false,
         isConfigured: true,
-        recordsSynced: syncedInRun,
-        recordsFailed: failedInRun + 1,
+        recordsSynced: 0,
+        recordsFailed: failedInRun,
         timestamp: new Date().toISOString(),
-        message: `Firestore sync failed: ${err.message}`,
+        message: `Firestore sync failed: ${friendlyError}`,
       };
     } finally {
       this.isSyncing = false;
@@ -259,13 +303,14 @@ class FirestoreSyncService {
         message: `Successfully uploaded XML Import and ${recordsToUpload.length} normalized records to Firestore.`,
       };
     } catch (err: any) {
+      const friendlyError = parseFirestoreErrorMessage(err);
       return {
         success: false,
         isConfigured: true,
         recordsSynced: 0,
         recordsFailed: report.records.length,
         timestamp: new Date().toISOString(),
-        message: `Failed to upload XML records to Firestore: ${err.message}`,
+        message: `Failed to upload XML records to Firestore: ${friendlyError}`,
       };
     }
   }

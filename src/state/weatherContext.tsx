@@ -129,6 +129,7 @@ export function WeatherProvider({ children }: { children: React.ReactNode }) {
   // Initialize on mount
   useEffect(() => {
     sqliteService.initialize().catch(console.error);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadWeatherData(currentLocation);
   }, []);
 

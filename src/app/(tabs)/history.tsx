@@ -265,7 +265,7 @@ export default function HistoryScreen() {
                 <Ionicons name="code-slash-outline" size={36} color={Palette.textMutedDark} />
                 <Text style={styles.emptyTitle}>No normalized XML records stored yet.</Text>
                 <Text style={styles.emptySub}>
-                  Visit XML Explorer and tap "Fetch & Parse Live XML Response".
+                  Visit XML Explorer and tap &quot;Fetch &amp; Parse Live XML Response&quot;.
                 </Text>
               </View>
             )}
