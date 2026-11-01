@@ -1,13 +1,12 @@
 import React from 'react';
-import { StyleSheet, useWindowDimensions, View } from 'react-native';
-import { Layout } from '@/constants/theme';
+import { StyleSheet, View } from 'react-native';
+import { useWideLayout } from '@/hooks/use-wide-layout';
 
 export function ResponsiveColumns({ children }: { children: React.ReactNode }) {
-  const { width, fontScale } = useWindowDimensions();
-  const wide = width >= Layout.wideBreakpoint && fontScale < 1.5;
+  const wide = useWideLayout();
   return (
     <View style={[styles.container, wide && styles.wide]}>
-      {React.Children.map(children, child => child && <View style={styles.column}>{child}</View>)}
+      {React.Children.map(children, child => child && <View style={[styles.column, wide && styles.wideColumn]}>{child}</View>)}
     </View>
   );
 }
@@ -15,5 +14,6 @@ export function ResponsiveColumns({ children }: { children: React.ReactNode }) {
 const styles = StyleSheet.create({
   container: { gap: 0 },
   wide: { flexDirection: 'row', alignItems: 'flex-start' },
-  column: { flex: 1, minWidth: 0 },
+  column: { minWidth: 0 },
+  wideColumn: { flex: 1 },
 });

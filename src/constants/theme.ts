@@ -3,7 +3,6 @@
  * Deep navy and slate atmospheric palette with cyan/azure accents
  */
 
-import { Platform } from 'react-native';
 
 export const Palette = {
   // Deep atmospheric tones (Midnight Blue Theme)

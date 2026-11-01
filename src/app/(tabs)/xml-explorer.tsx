@@ -353,17 +353,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.06)',
   },
-  title: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    letterSpacing: 0.3,
-  },
-  subtitle: {
-    fontSize: 13,
-    color: '#38BDF8',
-    marginTop: 2,
-  },
   refreshBtn: {
     minWidth: 44, minHeight: 44,
     width: 38,

@@ -193,8 +193,9 @@ const styles = StyleSheet.create({
   scenicWrapper: {
     position: 'absolute',
     bottom: 0,
-    left: 0,
     right: 0,
+    width: '100%',
+    maxWidth: 520,
     height: 190,
     opacity: 0.5,
   },

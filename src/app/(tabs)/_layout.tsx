@@ -5,14 +5,13 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Layout, Palette, Typography } from '@/constants/theme';
-import { useWindowDimensions } from 'react-native';
+import { Palette, Typography } from '@/constants/theme';
+import { useWideLayout } from '@/hooks/use-wide-layout';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabLayout() {
-  const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const isWide = width >= Layout.wideBreakpoint;
+  const isWide = useWideLayout();
   const bottomPadding = Math.max(insets.bottom, 10);
   return (
     <Tabs

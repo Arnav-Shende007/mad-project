@@ -304,27 +304,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#070F1E',
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    backgroundColor: 'rgba(7, 15, 30, 0.95)',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    letterSpacing: 0.3,
-  },
-  subtitle: {
-    fontSize: 13,
-    color: 'rgba(226, 232, 240, 0.65)',
-    marginTop: 2,
-  },
   scrollContent: {
     width: '100%', maxWidth: Layout.contentMaxWidth, alignSelf: 'center',
     paddingHorizontal: 16,
