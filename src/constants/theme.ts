@@ -10,8 +10,8 @@ export const Palette = {
   spaceNavy: '#070F1E',
   deepSlate: '#0B172E',
   cardSlate: '#0F2142',
-  cardSurface: 'rgba(16, 36, 70, 0.65)',
-  cardBorder: 'rgba(255, 255, 255, 0.08)',
+  cardSurface: '#101E34',
+  cardBorder: 'rgba(170, 199, 235, 0.12)',
   cardBorderSubtle: 'rgba(255, 255, 255, 0.04)',
   
   // Accents
@@ -27,8 +27,10 @@ export const Palette = {
   // Grayscale & Text
   white: '#FFFFFF',
   textPrimaryDark: '#FFFFFF',
-  textSecondaryDark: 'rgba(226, 232, 240, 0.75)',
-  textMutedDark: 'rgba(226, 232, 240, 0.45)',
+  textSecondaryDark: '#AFBED2',
+  textMutedDark: '#8A9CB5',
+  accentSoft: 'rgba(56, 189, 248, 0.10)',
+  accentBorder: 'rgba(56, 189, 248, 0.22)',
 
   textPrimaryLight: '#0F172A',
   textSecondaryLight: '#475569',
@@ -145,6 +147,12 @@ export const Spacing = {
   xl: 20,
   xxl: 24,
   xxxl: 32,
+} as const;
+
+export const Layout = {
+  contentMaxWidth: 1120,
+  wideBreakpoint: 760,
+  minTouchTarget: 44,
 } as const;
 
 export const Radius = {
