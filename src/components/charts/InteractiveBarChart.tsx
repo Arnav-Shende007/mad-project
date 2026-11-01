@@ -67,7 +67,7 @@ export function InteractiveBarChart({
   const groupWidth = usableWidth / data.length;
   const barWidth = Math.min(groupWidth * 0.35, 18);
 
-  const active = selectedIdx !== null ? data[selectedIdx] : data[0];
+  const active = (selectedIdx !== null ? data[selectedIdx] : undefined) ?? data[0];
 
   return (
     <View style={styles.wrapper} onLayout={onLayout}>
@@ -165,6 +165,9 @@ export function InteractiveBarChart({
         {data.map((_, idx) => (
           <TouchableOpacity
             key={`tap-target-${idx}`}
+            accessibilityRole="button"
+            accessibilityLabel={`${data[idx].label}: ${data[idx].primaryValue}${unit}${data[idx].secondaryValue !== undefined ? `, low ${data[idx].secondaryValue}${unit}` : ''}`}
+            accessibilityState={{ selected: selectedIdx === idx }}
             style={{ flex: 1 }}
             activeOpacity={1}
             onPress={() => setSelectedIdx(idx)}
@@ -187,6 +190,8 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.lg,
     marginBottom: Spacing.xs,
@@ -198,6 +203,7 @@ const styles = StyleSheet.create({
   },
   headerValues: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
   },
   valText: {
     ...Typography.bodySmall,

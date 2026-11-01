@@ -3,7 +3,7 @@
  * High-performance vector line and area chart compatible with Expo Go, iOS, Android, and Web.
  */
 
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
 import { View, Text, StyleSheet, LayoutChangeEvent, TouchableOpacity } from 'react-native';
 import Svg, { Path, Defs, LinearGradient, Stop, Circle, Line, Text as SvgText } from 'react-native-svg';
 import { Palette, Radius, Spacing, Typography } from '@/constants/theme';
@@ -33,6 +33,7 @@ export function InteractiveLineChart({
 }: Props) {
   const [chartWidth, setChartWidth] = useState(320);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const gradientId = `line-fill-${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
 
   const onLayout = (e: LayoutChangeEvent) => {
     const w = e.nativeEvent.layout.width;
@@ -76,7 +77,7 @@ export function InteractiveLineChart({
   // Construct Area Path for gradient fill
   const areaD = `${pathD} L ${points[points.length - 1].x} ${paddingTop + usableHeight} L ${points[0].x} ${paddingTop + usableHeight} Z`;
 
-  const activePoint = selectedIndex !== null ? points[selectedIndex] : points[points.length - 1];
+  const activePoint = (selectedIndex !== null ? points[selectedIndex] : undefined) ?? points[points.length - 1];
 
   return (
     <View style={styles.wrapper} onLayout={onLayout}>
@@ -91,7 +92,7 @@ export function InteractiveLineChart({
 
       <Svg width={chartWidth} height={height}>
         <Defs>
-          <LinearGradient id="lineFillGrad" x1="0" y1="0" x2="0" y2="1">
+          <LinearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
             <Stop offset="0" stopColor={strokeColor} stopOpacity="0.35" />
             <Stop offset="1" stopColor={strokeColor} stopOpacity="0.0" />
           </LinearGradient>
@@ -126,7 +127,7 @@ export function InteractiveLineChart({
         })}
 
         {/* Gradient fill underneath curve */}
-        <Path d={areaD} fill="url(#lineFillGrad)" />
+        <Path d={areaD} fill={`url(#${gradientId})`} />
 
         {/* Line Stroke */}
         <Path d={pathD} fill="none" stroke={strokeColor} strokeWidth={2.5} strokeLinecap="round" />
@@ -148,7 +149,7 @@ export function InteractiveLineChart({
         {/* X-axis labels */}
         {points.map((pt, i) => {
           // Display every Nth label to prevent clutter
-          const step = Math.ceil(points.length / 6);
+          const step = Math.ceil(points.length / Math.max(2, Math.floor(usableWidth / 60)));
           if (i % step !== 0 && i !== points.length - 1) return null;
           return (
             <SvgText
@@ -170,6 +171,9 @@ export function InteractiveLineChart({
         {data.map((_, i) => (
           <TouchableOpacity
             key={`touch-${i}`}
+            accessibilityRole="button"
+            accessibilityLabel={`${data[i].label}: ${data[i].value} ${unit}`}
+            accessibilityState={{ selected: selectedIndex === i }}
             style={{ flex: 1 }}
             activeOpacity={1}
             onPress={() => setSelectedIndex(i)}
@@ -193,6 +197,8 @@ const styles = StyleSheet.create({
   },
   activeHeader: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.lg,
     marginBottom: Spacing.xs,
@@ -203,6 +209,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   activeValue: {
+    fontVariant: ['tabular-nums'],
     ...Typography.bodyLarge,
     color: Palette.cyanGlow,
     fontWeight: '700',

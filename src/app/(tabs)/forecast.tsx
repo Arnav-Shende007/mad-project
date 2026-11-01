@@ -4,12 +4,14 @@
  */
 
 import React from 'react';
+import { ScreenHeader } from '@/components/ui/ScreenHeader';
+import { ResponsiveColumns } from '@/components/ui/ResponsiveColumns';
 import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useWeather } from '@/state/weatherContext';
 import { useSettings } from '@/state/settingsContext';
-import { Palette } from '@/constants/theme';
+import { Layout, Palette } from '@/constants/theme';
 import { getWeatherConditionInfo } from '@/constants/weatherCodes';
 import { InteractiveBarChart } from '@/components/charts/InteractiveBarChart';
 import { InteractiveLineChart } from '@/components/charts/InteractiveLineChart';
@@ -42,15 +44,7 @@ export default function ForecastScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>Extended Forecast</Text>
-          <Text style={styles.subtitle}>
-            {currentLocation.name}, {currentLocation.country} (7-Day Projection)
-          </Text>
-        </View>
-        <Ionicons name="calendar" size={24} color={Palette.cyanGlow} />
-      </View>
+      <ScreenHeader title="The week ahead" subtitle={`${currentLocation.name}, ${currentLocation.country} · Your 7-day outlook`} icon="calendar-outline" />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -63,6 +57,8 @@ export default function ForecastScreen() {
           />
         }
       >
+        <ResponsiveColumns>
+        <View style={{ paddingRight: 6 }}>
         {/* High / Low Temperature Bar Chart */}
         <View style={styles.chartCard}>
           <View style={styles.chartHeader}>
@@ -88,6 +84,8 @@ export default function ForecastScreen() {
           />
         </View>
 
+        </View>
+        <View style={{ paddingLeft: 6 }}>
         {/* Precipitation Trend Chart */}
         <View style={styles.chartCard}>
           <View style={styles.chartHeader}>
@@ -106,6 +104,8 @@ export default function ForecastScreen() {
           />
         </View>
 
+        </View>
+        </ResponsiveColumns>
         {/* Detailed 7-Day List */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Daily Breakdown</Text>
@@ -177,12 +177,15 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   scrollContent: {
+    width: '100%',
+    maxWidth: Layout.contentMaxWidth,
+    alignSelf: 'center',
     paddingHorizontal: 16,
     paddingTop: 14,
     paddingBottom: 40,
   },
   chartCard: {
-    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    backgroundColor: Palette.cardSurface,
     borderRadius: 20,
     padding: 16,
     borderWidth: 1,
@@ -190,6 +193,8 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   chartHeader: {
+    flexWrap: 'wrap',
+    gap: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -231,9 +236,11 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   dayCard: {
+    flexWrap: 'wrap',
+    gap: 8,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    backgroundColor: Palette.cardSurface,
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 14,
