@@ -56,16 +56,19 @@ export function KpiCard({
 const styles = StyleSheet.create({
   card: {
     flex: 1,
-    minWidth: 140,
+    minWidth: 120,
+    flexBasis: 120,
     backgroundColor: Palette.cardSurface,
     borderRadius: Radius.lg,
-    padding: Spacing.md,
+    padding: Spacing.lg,
     borderWidth: 1,
     borderColor: Palette.cardBorder,
     margin: Spacing.xs,
   },
   topRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: Spacing.xs,
@@ -94,9 +97,11 @@ const styles = StyleSheet.create({
   },
   valueRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'baseline',
   },
   value: {
+    fontVariant: ['tabular-nums'],
     ...Typography.titleLarge,
     color: Palette.textPrimaryDark,
     fontWeight: '700',

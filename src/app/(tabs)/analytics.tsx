@@ -9,8 +9,8 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useWeather } from '@/state/weatherContext';
-import { useSettings } from '@/state/settingsContext';
-import { Palette, Radius, Spacing, Typography } from '@/constants/theme';
+import { ScreenHeader } from '@/components/ui/ScreenHeader';
+import { Layout, Palette } from '@/constants/theme';
 import { InteractiveLineChart, LineChartPoint } from '@/components/charts/InteractiveLineChart';
 import { KpiCard } from '@/components/charts/KpiCard';
 import { SystemArchitectureDiagram } from '@/components/diagrams/SystemArchitectureDiagram';
@@ -21,7 +21,6 @@ type SelectedPeriod = '24h' | '7d';
 
 export default function AnalyticsScreen() {
   const { weatherData, analytics, isLoading, refreshWeather, currentLocation } = useWeather();
-  const { formatTemperature, formatWindSpeed } = useSettings();
 
   const [selectedMetric, setSelectedMetric] = useState<SelectedMetric>('temperature');
   const [selectedPeriod, setSelectedPeriod] = useState<SelectedPeriod>('24h');
@@ -101,21 +100,11 @@ export default function AnalyticsScreen() {
 
   // Active stats depending on metric
   const tempStats = analytics?.temperature.hourlyStats;
-  const precipStats = analytics?.precipitation;
-  const windStats = analytics?.wind;
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>Weather Intelligence & Analytics</Text>
-          <Text style={styles.subtitle}>
-            {currentLocation.name} · Statistical Modeling & Trends
-          </Text>
-        </View>
-        <Ionicons name="analytics" size={24} color={Palette.cyanGlow} />
-      </View>
+      <ScreenHeader title="Weather intelligence" subtitle={`${currentLocation.name} · A closer look at the patterns`} icon="analytics-outline" />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -141,6 +130,8 @@ export default function AnalyticsScreen() {
               return (
                 <TouchableOpacity
                   key={m.id}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isSelected }}
                   style={[styles.metricTab, isSelected && styles.metricTabActive]}
                   onPress={() => setSelectedMetric(m.id as SelectedMetric)}
                 >
@@ -201,7 +192,7 @@ export default function AnalyticsScreen() {
         {/* Statistical Summary KPI Cards (Requirement 4F) */}
         {tempStats && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Statistical Foundation</Text>
+            <Text style={styles.sectionTitle}>Temperature at a glance</Text>
             <View style={styles.kpiGrid}>
               <KpiCard
                 title="Arithmetic Mean"
@@ -335,6 +326,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   scrollContent: {
+    width: '100%', maxWidth: Layout.contentMaxWidth, alignSelf: 'center',
     paddingHorizontal: 16,
     paddingTop: 14,
     paddingBottom: 40,
@@ -346,12 +338,13 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   metricTab: {
+    minHeight: 44,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    backgroundColor: Palette.cardSurface,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
     marginRight: 8,
@@ -372,7 +365,7 @@ const styles = StyleSheet.create({
   },
   periodToggleRow: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    backgroundColor: Palette.cardSurface,
     borderRadius: 20,
     padding: 3,
     marginTop: 8,
@@ -380,6 +373,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   periodBtn: {
+    minHeight: 44, justifyContent: 'center',
     flex: 1,
     paddingVertical: 8,
     alignItems: 'center',
@@ -399,7 +393,7 @@ const styles = StyleSheet.create({
   },
   chartWrapper: {
     marginVertical: 10,
-    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    backgroundColor: Palette.cardSurface,
     borderRadius: 20,
     padding: 16,
     borderWidth: 1,
@@ -412,6 +406,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   chartTitleText: {
+    flex: 1,
     fontSize: 12,
     color: 'rgba(226, 232, 240, 0.8)',
     fontWeight: '700',
@@ -439,11 +434,12 @@ const styles = StyleSheet.create({
     color: 'rgba(226, 232, 240, 0.6)',
   },
   kpiGrid: {
+    flexWrap: 'wrap',
     flexDirection: 'row',
     marginHorizontal: -4,
   },
   insightCard: {
-    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    backgroundColor: Palette.cardSurface,
     borderRadius: 20,
     padding: 16,
     marginBottom: 10,
