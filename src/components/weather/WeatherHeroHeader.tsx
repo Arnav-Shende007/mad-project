@@ -19,6 +19,7 @@ import Svg, {
 import { Ionicons } from '@expo/vector-icons';
 import { Palette, Radius, Spacing, Typography } from '@/constants/theme';
 import { LocationItem, CurrentWeather, DailyForecastItem } from '@/models/weather.types';
+import { getWeatherConditionInfo } from '@/constants/weatherCodes';
 
 interface WeatherHeroHeaderProps {
   location: LocationItem;
@@ -36,18 +37,25 @@ export function WeatherHeroHeader({
   const highTemp = todayDaily ? formatTemperature(todayDaily.temperatureMax) : formatTemperature(current.temperature + 4);
   const lowTemp = todayDaily ? formatTemperature(todayDaily.temperatureMin) : formatTemperature(current.temperature - 4);
   const feelsLike = formatTemperature(current.apparentTemperature);
+  const condition = getWeatherConditionInfo(current.weatherCode);
 
   return (
     <View style={styles.container}>
       {/* Location Row */}
       <View style={styles.locationRow}>
-        <Ionicons name="location-sharp" size={20} color={Palette.white} style={{ marginRight: 6 }} />
-        <Text style={styles.locationName}>{location.name}</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.eyebrow}>YOUR LOCAL OUTLOOK</Text>
+          <Text style={styles.locationName}>{location.name}</Text>
+          <Text style={styles.country}>{location.country}</Text>
+        </View>
+        <View style={styles.weatherIcon}>
+          <Ionicons name={condition.iconName as keyof typeof Ionicons.glyphMap} size={34} color={condition.color} />
+        </View>
       </View>
 
       {/* Main Temperature Display */}
       <View style={styles.tempSection}>
-        <Text style={styles.temperatureText}>{Math.round(current.temperature)}°</Text>
+        <Text style={styles.temperatureText}>{formatTemperature(current.temperature)}</Text>
         <Text style={styles.conditionText}>{current.weatherDescription}</Text>
         <Text style={styles.rangeText}>
           ↑ {highTemp}  /  ↓ {lowTemp}  •  Feels like {feelsLike}
@@ -55,8 +63,8 @@ export function WeatherHeroHeader({
       </View>
 
       {/* Atmospheric Scenic Illustration Backdrop */}
-      <View style={styles.scenicWrapper}>
-        <Svg width="100%" height={160} viewBox="0 0 360 160">
+      <View pointerEvents="none" accessibilityElementsHidden style={styles.scenicWrapper}>
+        <Svg width="100%" height="100%" viewBox="0 0 360 160" preserveAspectRatio="xMidYMax slice">
           <Defs>
             <LinearGradient id="twilightGrad" x1="0" y1="0" x2="0" y2="1">
               <Stop offset="0" stopColor="#0E244D" stopOpacity="0.8" />
@@ -133,33 +141,45 @@ export function WeatherHeroHeader({
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: Spacing.md,
-    paddingTop: Spacing.sm,
-    paddingBottom: Spacing.md,
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 20,
+    padding: 24,
+    borderRadius: 28,
+    backgroundColor: '#102747',
+    borderWidth: 1,
+    borderColor: Palette.accentBorder,
+    overflow: 'hidden',
   },
+  eyebrow: { fontSize: 10, letterSpacing: 2, fontWeight: '700', color: '#A5DBF5', marginBottom: 10 },
+  country: { fontSize: 13, color: Palette.textSecondaryDark, marginTop: 4 },
+  weatherIcon: { width: 64, height: 64, borderRadius: 22, backgroundColor: 'rgba(56,189,248,0.12)', alignItems: 'center', justifyContent: 'center' },
   locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: Spacing.xs,
+    zIndex: 1,
+    gap: 12,
   },
   locationName: {
     ...Typography.titleLarge,
     color: Palette.white,
     fontWeight: '700',
-    letterSpacing: 0.3,
+    letterSpacing: -0.5,
   },
   tempSection: {
-    marginBottom: Spacing.sm,
+    marginTop: 20,
+    marginBottom: 24,
+    zIndex: 1,
   },
   temperatureText: {
-    fontSize: 88,
+    fontSize: 80,
     fontWeight: '300',
     color: Palette.white,
     letterSpacing: -3,
-    lineHeight: 96,
   },
   conditionText: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '600',
     color: Palette.white,
     marginTop: -4,
@@ -171,14 +191,15 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   scenicWrapper: {
-    borderRadius: Radius.xl,
-    overflow: 'hidden',
-    marginTop: Spacing.sm,
-    marginBottom: Spacing.sm,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 190,
+    opacity: 0.5,
   },
   summaryPill: {
+    zIndex: 1,
     backgroundColor: 'rgba(16, 37, 75, 0.6)',
     paddingVertical: 10,
     paddingHorizontal: 16,
