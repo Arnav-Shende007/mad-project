@@ -5,10 +5,15 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Palette, Typography } from '@/constants/theme';
-import { Platform } from 'react-native';
+import { Layout, Palette, Typography } from '@/constants/theme';
+import { useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabLayout() {
+  const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const isWide = width >= Layout.wideBreakpoint;
+  const bottomPadding = Math.max(insets.bottom, 10);
   return (
     <Tabs
       screenOptions={{
@@ -17,10 +22,14 @@ export default function TabLayout() {
           backgroundColor: Palette.spaceNavy,
           borderTopColor: Palette.cardBorder,
           borderTopWidth: 1,
-          height: Platform.OS === 'ios' ? 88 : 68,
-          paddingBottom: Platform.OS === 'ios' ? 28 : 10,
-          paddingTop: 8,
+          height: 62 + bottomPadding,
+          paddingBottom: bottomPadding,
+          paddingTop: 10,
         },
+        tabBarItemStyle: { borderRadius: 16, marginHorizontal: isWide ? 6 : 4 },
+        tabBarActiveBackgroundColor: Palette.accentSoft,
+        tabBarLabelPosition: 'below-icon',
+        tabBarHideOnKeyboard: true,
         tabBarActiveTintColor: Palette.cyanGlow,
         tabBarInactiveTintColor: Palette.textMutedDark,
         tabBarLabelStyle: {
@@ -60,6 +69,7 @@ export default function TabLayout() {
         name="xml-explorer"
         options={{
           title: 'XML Data',
+          href: isWide ? '/xml-explorer' : null,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="code-download-outline" size={size} color={color} />
           ),
@@ -69,6 +79,7 @@ export default function TabLayout() {
         name="history"
         options={{
           title: 'Local DB',
+          href: isWide ? '/history' : null,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="server-outline" size={size} color={color} />
           ),
@@ -78,6 +89,7 @@ export default function TabLayout() {
         name="cloud-sync"
         options={{
           title: 'Cloud Sync',
+          href: isWide ? '/cloud-sync' : null,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="cloud-upload-outline" size={size} color={color} />
           ),
@@ -87,6 +99,7 @@ export default function TabLayout() {
         name="settings"
         options={{
           title: 'Settings',
+          tabBarLabel: isWide ? 'Settings' : 'More',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="settings-outline" size={size} color={color} />
           ),
