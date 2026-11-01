@@ -27,6 +27,8 @@ import { useSettings } from '@/state/settingsContext';
 
 import { DEFAULT_LOCATIONS, searchCities } from '@/api/openMeteo';
 import { LocationItem } from '@/models/weather.types';
+import { Layout, Palette } from '@/constants/theme';
+import { ResponsiveColumns } from '@/components/ui/ResponsiveColumns';
 
 // Specialized Weather UI Components
 import { WeatherHeroHeader } from '@/components/weather/WeatherHeroHeader';
@@ -123,14 +125,18 @@ export default function HomeScreen() {
         minute: '2-digit',
         hour12: true,
       })
-    : '8:55 pm';
+    : null;
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       {/* Top Bar with Search toggle & Status Badges */}
       <View style={styles.topBar}>
         <View style={styles.brandingRow}>
-          <Text style={styles.appName}>AtmosIQ</Text>
+          <View style={styles.brandIcon}><Ionicons name="partly-sunny" size={20} color={Palette.cyanGlow} /></View>
+          <View>
+            <Text style={styles.appName}>AtmosIQ</Text>
+            <Text style={styles.brandCaption}>A little clarity for your day.</Text>
+          </View>
           {isOffline ? (
             <View style={styles.offlineBadge}>
               <Ionicons name="cloud-offline" size={12} color="#FBBF24" />
@@ -147,6 +153,9 @@ export default function HomeScreen() {
         <TouchableOpacity
           style={styles.searchIconButton}
           activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel={searchBarOpen ? 'Close city search' : 'Search for a city'}
+          accessibilityState={{ expanded: searchBarOpen }}
           onPress={() => setSearchBarOpen(!searchBarOpen)}
         >
           <Ionicons
@@ -173,7 +182,7 @@ export default function HomeScreen() {
             />
             {isSearching && <ActivityIndicator size="small" color="#38BDF8" />}
             {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Clear city search" style={styles.clearSearch} onPress={() => handleSearchChange('')}>
                 <Ionicons name="close-circle" size={16} color="rgba(226, 232, 240, 0.6)" />
               </TouchableOpacity>
             )}
@@ -232,6 +241,7 @@ export default function HomeScreen() {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
         refreshControl={
           <RefreshControl
             refreshing={isLoading}
@@ -241,6 +251,13 @@ export default function HomeScreen() {
           />
         }
       >
+        {!current && (
+          <View style={styles.loadingCard} accessibilityLiveRegion="polite">
+            {isLoading ? <ActivityIndicator size="large" color={Palette.cyanGlow} /> : <Ionicons name="cloud-offline-outline" size={36} color={Palette.cyanGlow} />}
+            <Text style={styles.loadingTitle}>{isLoading ? 'Gathering your local forecast' : 'Your forecast is waiting'}</Text>
+            <Text style={styles.loadingCopy}>{isLoading ? `Checking the skies over ${currentLocation.name}…` : 'Pull down to refresh, or search for another city.'}</Text>
+          </View>
+        )}
         {error && (
           <View style={styles.errorBox}>
             <Ionicons name="alert-circle" size={18} color="#F87171" />
@@ -263,10 +280,12 @@ export default function HomeScreen() {
           <HourlyTrendChart
             hourly={hourly}
             formatTemperature={formatTemperature}
-            onPressFullForecast={() => router.push('/(tabs)/analytics')}
+            onPressFullForecast={() => router.push('/(tabs)/forecast')}
           />
         )}
 
+        <ResponsiveColumns>
+        <View>
         {/* 3. Tomorrow's Temperature Insight Banner */}
         <TemperatureInsightCard
           today={todayDaily}
@@ -278,8 +297,10 @@ export default function HomeScreen() {
         <DailyForecastCard
           daily={daily}
           unitSymbol="°"
-          onPressMore={() => router.push('/(tabs)/analytics')}
+          onPressMore={() => router.push('/(tabs)/forecast')}
         />
+        </View>
+        <View>
 
         {/* 5. Running Fitness Activity Card */}
         <RunningActivityCard current={current} hourly={hourly} />
@@ -290,18 +311,32 @@ export default function HomeScreen() {
           temperature={current?.temperature ?? 25}
           unitSymbol="°"
         />
+        </View>
+        </ResponsiveColumns>
 
+        <Text accessibilityRole="header" style={styles.sectionHeading}>The details that matter</Text>
+        <ResponsiveColumns>
+        <View>
         {/* 7. AQI & 3-Column Pollen Card */}
         <AqiPollenCard airQuality={airQuality} />
+        </View>
+        <View>
 
         {/* 8. 2x2 Grid of Weather Metrics: UV, Humidity, Wind compass, Dew point, Pressure gauge, Visibility */}
         <WeatherMetricsGrid current={current} unitSymbol="°" />
+        </View>
+        </ResponsiveColumns>
 
+        <Text accessibilityRole="header" style={styles.sectionHeading}>From sunrise to starlight</Text>
+        <ResponsiveColumns>
+        <View>
         {/* 9. Celestial Sun Cycle Parabolic Card */}
         <SunCycleCard
           sunriseTime={todayDaily?.sunrise}
           sunsetTime={todayDaily?.sunset}
         />
+        </View>
+        <View>
 
         {/* 10. Celestial Moon Phase Card */}
         <MoonPhaseCard
@@ -309,6 +344,8 @@ export default function HomeScreen() {
           moonriseTime="10:28 am"
           moonsetTime="9:29 pm"
         />
+        </View>
+        </ResponsiveColumns>
 
         {/* 11. Report Incorrect Info Button */}
         <View style={styles.reportRow}>
@@ -327,12 +364,12 @@ export default function HomeScreen() {
           <Ionicons name="cloudy" size={14} color="rgba(226, 232, 240, 0.6)" />
           <Text style={styles.attributionSource}>AtmosIQ / Open-Meteo</Text>
           <Text style={styles.attributionDot}>•</Text>
-          <Text style={styles.attributionTime}>Updated {updatedTimeStr}</Text>
+          <Text style={styles.attributionTime}>{updatedTimeStr ? `Updated ${updatedTimeStr}` : 'Awaiting first update'}</Text>
         </View>
 
         {/* 13. Academic Features Quick Hub (Navigation to Analytics, XML, DB, Cloud Sync) */}
         <View style={styles.academicSection}>
-          <Text style={styles.academicTitle}>AtmosIQ Intelligence Hub</Text>
+          <Text style={styles.academicTitle}>Explore your weather</Text>
           <View style={styles.academicGrid}>
             <TouchableOpacity
               style={styles.academicChip}
@@ -378,11 +415,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#070F1E',
   },
   topBar: {
+    width: '100%',
+    maxWidth: Layout.contentMaxWidth,
+    alignSelf: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingVertical: 16,
     backgroundColor: 'rgba(7, 15, 30, 0.95)',
   },
   brandingRow: {
@@ -392,10 +432,17 @@ const styles = StyleSheet.create({
   },
   appName: {
     fontSize: 20,
-    fontWeight: '800',
+    fontWeight: '700',
     color: '#FFFFFF',
-    letterSpacing: 0.5,
+    letterSpacing: -0.6,
   },
+  brandIcon: { width: 42, height: 42, borderRadius: 15, backgroundColor: Palette.accentSoft, alignItems: 'center', justifyContent: 'center' },
+  brandCaption: { fontSize: 10, color: Palette.textSecondaryDark, marginTop: 3 },
+  clearSearch: { minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
+  sectionHeading: { fontSize: 20, fontWeight: '600', letterSpacing: -0.5, color: Palette.white, marginHorizontal: 20, marginTop: 24, marginBottom: 12 },
+  loadingCard: { margin: 16, padding: 32, borderRadius: 24, backgroundColor: Palette.cardSurface, alignItems: 'center', gap: 14 },
+  loadingTitle: { fontSize: 18, fontWeight: '600', color: Palette.white, textAlign: 'center' },
+  loadingCopy: { fontSize: 14, lineHeight: 21, color: Palette.textSecondaryDark, textAlign: 'center' },
   liveBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -431,14 +478,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   searchIconButton: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 44,
+    height: 44,
+    borderRadius: 16,
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   searchSection: {
+    width: '100%',
+    maxWidth: Layout.contentMaxWidth,
+    alignSelf: 'center',
     backgroundColor: '#0B172E',
     paddingHorizontal: 16,
     paddingBottom: 12,
@@ -477,6 +527,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   dropdownCity: {
+    flex: 1,
     fontSize: 14,
     color: '#FFFFFF',
     fontWeight: '500',
@@ -515,7 +566,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   scrollContent: {
-    paddingBottom: 40,
+    width: '100%',
+    maxWidth: Layout.contentMaxWidth,
+    alignSelf: 'center',
+    paddingBottom: 48,
   },
   errorBox: {
     flexDirection: 'row',
@@ -557,6 +611,7 @@ const styles = StyleSheet.create({
   },
   attributionRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 8,
