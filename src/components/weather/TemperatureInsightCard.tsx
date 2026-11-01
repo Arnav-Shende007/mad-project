@@ -1,3 +1,4 @@
+import { Palette } from '@/constants/theme';
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -56,7 +57,7 @@ export const TemperatureInsightCard: React.FC<TemperatureInsightCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    backgroundColor: Palette.cardSurface,
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingTop: 14,
@@ -64,7 +65,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginVertical: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: Palette.cardBorder,
   },
   headerRow: {
     flexDirection: 'row',

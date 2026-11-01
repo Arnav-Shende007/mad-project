@@ -1,5 +1,6 @@
+import { Palette } from '@/constants/theme';
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import Svg, {
   Rect,
   Circle,
@@ -10,6 +11,7 @@ import Svg, {
   Stop,
 } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
+import { useSettings } from '@/state/settingsContext';
 
 interface RadarMapCardProps {
   cityName?: string;
@@ -22,7 +24,7 @@ export const RadarMapCard: React.FC<RadarMapCardProps> = ({
   temperature = 25,
   unitSymbol = '°',
 }) => {
-  const cardWidth = Dimensions.get('window').width - 32;
+  const { formatTemperature } = useSettings();
   const mapHeight = 160;
 
   return (
@@ -31,7 +33,7 @@ export const RadarMapCard: React.FC<RadarMapCardProps> = ({
 
       {/* Stylized Thermal Radar Map Container */}
       <View style={styles.mapContainer}>
-        <Svg width={cardWidth - 2} height={mapHeight} viewBox="0 0 340 160">
+        <Svg width="100%" height={mapHeight} viewBox="0 0 340 160" preserveAspectRatio="xMidYMid slice">
           <Defs>
             {/* Ocean Gradient */}
             <LinearGradient id="oceanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -111,8 +113,7 @@ export const RadarMapCard: React.FC<RadarMapCardProps> = ({
 
       {/* Footer text */}
       <Text style={styles.footerNote}>
-        Current temperature of approximately {Math.round(temperature)}
-        {unitSymbol}
+        Current temperature of approximately {formatTemperature(temperature)}
       </Text>
     </View>
   );
@@ -120,13 +121,13 @@ export const RadarMapCard: React.FC<RadarMapCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    backgroundColor: Palette.cardSurface,
     borderRadius: 20,
     padding: 14,
     marginHorizontal: 16,
     marginVertical: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: Palette.cardBorder,
   },
   cardTitle: {
     fontSize: 13,
@@ -144,7 +145,8 @@ const styles = StyleSheet.create({
   pinLabelWrap: {
     position: 'absolute',
     top: 55,
-    left: 140,
+    left: '42%',
+    maxWidth: '55%',
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(15, 23, 42, 0.75)',
@@ -162,7 +164,7 @@ const styles = StyleSheet.create({
   },
   footerNote: {
     fontSize: 12,
-    color: 'rgba(226, 232, 240, 0.7)',
+    color: Palette.textSecondaryDark,
     marginTop: 8,
   },
 });

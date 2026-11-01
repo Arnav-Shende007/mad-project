@@ -60,6 +60,11 @@ export function HourlyTrendChart({
 
   return (
     <View style={styles.card}>
+      <View style={styles.heading}>
+        <Ionicons name="time-outline" size={16} color={Palette.cyanGlow} />
+        <Text style={styles.headingText}>Through the next hours</Text>
+        <Ionicons name="swap-horizontal-outline" size={16} color={Palette.textMutedDark} />
+      </View>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -143,7 +148,7 @@ export function HourlyTrendChart({
         onPress={onPressFullForecast}
         activeOpacity={0.7}
       >
-        <Text style={styles.footerLinkText}>48-hour forecast</Text>
+        <Text style={styles.footerLinkText}>Explore forecast</Text>
         <Ionicons name="chevron-forward" size={14} color="rgba(255, 255, 255, 0.6)" />
       </TouchableOpacity>
     </View>
@@ -151,14 +156,16 @@ export function HourlyTrendChart({
 }
 
 const styles = StyleSheet.create({
+  heading: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 18, paddingTop: 4, paddingBottom: 20 },
+  headingText: { flex: 1, fontSize: 14, fontWeight: '600', color: Palette.textSecondaryDark },
   card: {
-    backgroundColor: 'rgba(14, 35, 71, 0.65)',
+    backgroundColor: Palette.cardSurface,
     borderRadius: Radius.xl,
     paddingVertical: Spacing.md,
     marginHorizontal: Spacing.md,
     marginBottom: Spacing.md,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: Palette.cardBorder,
   },
   itemsRow: {
     flexDirection: 'row',
@@ -203,6 +210,7 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.55)',
   },
   footerLink: {
+    minHeight: 44,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',

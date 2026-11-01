@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: Radius.pill,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: Palette.cardBorder,
     alignSelf: 'flex-start',
   },
   summaryText: {

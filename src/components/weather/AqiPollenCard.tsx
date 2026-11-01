@@ -1,3 +1,4 @@
+import { Palette } from '@/constants/theme';
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -94,18 +95,18 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   card: {
-    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    backgroundColor: Palette.cardSurface,
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingTop: 14,
     paddingBottom: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: Palette.cardBorder,
   },
   cardHeader: {
     fontSize: 13,
     fontWeight: '500',
-    color: 'rgba(226, 232, 240, 0.7)',
+    color: Palette.textSecondaryDark,
     marginBottom: 6,
   },
   aqiStatusText: {
@@ -139,7 +140,7 @@ const styles = StyleSheet.create({
   },
   pollenType: {
     fontSize: 12,
-    color: 'rgba(226, 232, 240, 0.6)',
+    color: Palette.textMutedDark,
     marginBottom: 2,
   },
   pollenValue: {

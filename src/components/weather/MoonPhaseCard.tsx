@@ -1,3 +1,4 @@
+import { Palette } from '@/constants/theme';
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, {
@@ -95,14 +96,14 @@ export const MoonPhaseCard: React.FC<MoonPhaseCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    backgroundColor: Palette.cardSurface,
     borderRadius: 20,
     paddingHorizontal: 20,
     paddingVertical: 18,
     marginHorizontal: 16,
     marginVertical: 6,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: Palette.cardBorder,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -129,7 +130,7 @@ const styles = StyleSheet.create({
   },
   eventLabel: {
     fontSize: 12,
-    color: 'rgba(226, 232, 240, 0.6)',
+    color: Palette.textMutedDark,
     marginBottom: 2,
   },
   eventTime: {

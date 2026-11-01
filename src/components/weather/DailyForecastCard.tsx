@@ -1,8 +1,10 @@
+import { Palette } from '@/constants/theme';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { DailyForecastItem } from '@/models/weather.types';
 import { getWeatherConditionInfo } from '@/constants/weatherCodes';
+import { useSettings } from '@/state/settingsContext';
 
 interface DailyForecastCardProps {
   daily: DailyForecastItem[];
@@ -15,6 +17,7 @@ export const DailyForecastCard: React.FC<DailyForecastCardProps> = ({
   unitSymbol = '°',
   onPressMore,
 }) => {
+  const { formatTemperature } = useSettings();
   if (!daily || daily.length === 0) {
     return null;
   }
@@ -75,12 +78,10 @@ export const DailyForecastCard: React.FC<DailyForecastCardProps> = ({
           {/* High / Low Temp */}
           <View style={styles.tempContainer}>
             <Text style={styles.maxTempText}>
-              {row.maxT}
-              {unitSymbol}
+              {formatTemperature(row.maxT)}
             </Text>
             <Text style={styles.minTempText}>
-              {row.minT}
-              {unitSymbol}
+              {formatTemperature(row.minT)}
             </Text>
           </View>
         </View>
@@ -92,7 +93,7 @@ export const DailyForecastCard: React.FC<DailyForecastCardProps> = ({
         activeOpacity={0.7}
         onPress={onPressMore}
       >
-        <Text style={styles.moreButtonText}>15-day forecast</Text>
+        <Text style={styles.moreButtonText}>View full forecast</Text>
         <Ionicons name="chevron-forward" size={14} color="rgba(226, 232, 240, 0.6)" />
       </TouchableOpacity>
     </View>
@@ -101,7 +102,7 @@ export const DailyForecastCard: React.FC<DailyForecastCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    backgroundColor: Palette.cardSurface,
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingTop: 12,
@@ -109,7 +110,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginVertical: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: Palette.cardBorder,
   },
   row: {
     flexDirection: 'row',
@@ -121,7 +122,8 @@ const styles = StyleSheet.create({
     borderTopColor: 'rgba(255, 255, 255, 0.04)',
   },
   dayText: {
-    width: 80,
+    flex: 1,
+    minWidth: 48,
     fontSize: 15,
     fontWeight: '500',
     color: '#E2E8F0',
@@ -131,7 +133,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   popContainer: {
-    width: 60,
+    width: 44,
     alignItems: 'flex-start',
   },
   popText: {
@@ -141,11 +143,11 @@ const styles = StyleSheet.create({
   },
   popTextDim: {
     fontSize: 13,
-    color: 'rgba(226, 232, 240, 0.4)',
+    color: Palette.textMutedDark,
     fontWeight: '500',
   },
   iconContainer: {
-    width: 40,
+    width: 30,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -154,23 +156,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     alignItems: 'center',
-    gap: 12,
+    gap: 8,
   },
   maxTempText: {
     fontSize: 15,
     fontWeight: '700',
     color: '#FFFFFF',
-    width: 38,
+    minWidth: 30,
     textAlign: 'right',
   },
   minTempText: {
     fontSize: 15,
     fontWeight: '500',
     color: 'rgba(226, 232, 240, 0.55)',
-    width: 38,
+    minWidth: 30,
     textAlign: 'right',
   },
   moreButton: {
+    minHeight: 44,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -182,7 +185,7 @@ const styles = StyleSheet.create({
   },
   moreButtonText: {
     fontSize: 13,
-    color: 'rgba(226, 232, 240, 0.7)',
+    color: Palette.textSecondaryDark,
     fontWeight: '500',
   },
 });

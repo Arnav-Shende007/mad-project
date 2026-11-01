@@ -1,3 +1,4 @@
+import { Palette } from '@/constants/theme';
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, {
@@ -128,7 +129,7 @@ export const SunCycleCard: React.FC<SunCycleCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    backgroundColor: Palette.cardSurface,
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingTop: 16,
@@ -136,7 +137,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginVertical: 6,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: Palette.cardBorder,
   },
   chartContainer: {
     alignItems: 'center',
@@ -158,7 +159,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 12,
-    color: 'rgba(226, 232, 240, 0.6)',
+    color: Palette.textMutedDark,
     marginBottom: 2,
   },
   timeValue: {

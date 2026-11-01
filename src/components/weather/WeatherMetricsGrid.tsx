@@ -1,3 +1,4 @@
+import { Palette } from '@/constants/theme';
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, {
@@ -10,6 +11,7 @@ import Svg, {
 } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { CurrentWeather } from '@/models/weather.types';
+import { useSettings } from '@/state/settingsContext';
 
 interface WeatherMetricsGridProps {
   current?: CurrentWeather;
@@ -20,6 +22,7 @@ export const WeatherMetricsGrid: React.FC<WeatherMetricsGridProps> = ({
   current,
   unitSymbol = '°',
 }) => {
+  const { formatTemperature, formatWindSpeed } = useSettings();
   // 1. UV Index
   const uv = current?.uvIndex ?? 1;
   let uvCategory = 'Low';
@@ -192,8 +195,8 @@ export const WeatherMetricsGrid: React.FC<WeatherMetricsGridProps> = ({
 
             {/* Center Speed Value */}
             <View style={styles.compassCenterTextWrap}>
-              <Text style={styles.compassSpeedText}>{Math.round(windSpeed)}</Text>
-              <Text style={styles.compassUnitText}>km/h</Text>
+              <Text style={styles.compassSpeedText}>{formatWindSpeed(windSpeed).split(' ')[0]}</Text>
+              <Text style={styles.compassUnitText}>{formatWindSpeed(windSpeed).split(' ')[1]}</Text>
             </View>
           </View>
         </View>
@@ -207,8 +210,7 @@ export const WeatherMetricsGrid: React.FC<WeatherMetricsGridProps> = ({
           <Text style={styles.subtitle}>{dewSubtitle}</Text>
           <View style={styles.spacer} />
           <Text style={styles.giantValue}>
-            {Math.round(dewPoint)}
-            {unitSymbol}
+            {formatTemperature(dewPoint)}
           </Text>
         </View>
       </View>
@@ -275,15 +277,17 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 12,
   },
   card: {
     flex: 1,
-    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    minWidth: 125,
+    backgroundColor: Palette.cardSurface,
     borderRadius: 20,
     padding: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: Palette.cardBorder,
     minHeight: 140,
     justifyContent: 'space-between',
   },
@@ -294,13 +298,14 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   headerLabel: {
+    flexShrink: 1,
     fontSize: 13,
     fontWeight: '500',
-    color: 'rgba(226, 232, 240, 0.7)',
+    color: Palette.textSecondaryDark,
   },
   subtitle: {
     fontSize: 11,
-    color: 'rgba(226, 232, 240, 0.6)',
+    color: Palette.textMutedDark,
     lineHeight: 14,
     minHeight: 28,
   },
@@ -355,7 +360,7 @@ const styles = StyleSheet.create({
   },
   compassUnitText: {
     fontSize: 10,
-    color: 'rgba(226, 232, 240, 0.6)',
+    color: Palette.textMutedDark,
   },
   gaugeWrap: {
     alignItems: 'center',
@@ -376,6 +381,6 @@ const styles = StyleSheet.create({
   },
   gaugeUnitText: {
     fontSize: 10,
-    color: 'rgba(226, 232, 240, 0.6)',
+    color: Palette.textMutedDark,
   },
 });
