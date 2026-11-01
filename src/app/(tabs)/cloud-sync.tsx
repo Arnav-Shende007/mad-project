@@ -25,7 +25,8 @@ import { useWeather } from '@/state/weatherContext';
 import { getFirebaseStatus } from '@/firebase/config';
 import { firestoreSyncService, SyncResult } from '@/firebase/firestoreSync';
 import { sqliteService } from '@/database/sqlite';
-import { Palette, Radius, Spacing, Typography } from '@/constants/theme';
+import { Layout, Palette, Spacing } from '@/constants/theme';
+import { ScreenHeader } from '@/components/ui/ScreenHeader';
 
 export default function CloudSyncScreen() {
   const { syncResult, isSyncing, triggerCloudSync } = useWeather();
@@ -62,15 +63,10 @@ export default function CloudSyncScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>Cloud Synchronization</Text>
-          <Text style={styles.subtitle}>Requirement D · Firebase Firestore</Text>
-        </View>
-        <TouchableOpacity style={styles.refreshBtn} onPress={loadSyncData}>
+      <ScreenHeader title="Stay in sync" subtitle="Your weather data, connected across devices" icon="cloud-upload-outline"
+        action={<TouchableOpacity accessibilityRole="button" accessibilityLabel="Refresh sync status" style={styles.refreshBtn} onPress={loadSyncData}>
           <Ionicons name="refresh" size={20} color={Palette.cyanGlow} />
-        </TouchableOpacity>
-      </View>
+        </TouchableOpacity>} />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -295,6 +291,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   refreshBtn: {
+    minWidth: 44, minHeight: 44,
     width: 38,
     height: 38,
     borderRadius: 19,
@@ -305,19 +302,21 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   scrollContent: {
+    width: '100%', maxWidth: Layout.contentMaxWidth, alignSelf: 'center',
     paddingHorizontal: 16,
     paddingTop: 14,
     paddingBottom: 40,
   },
   statusCard: {
-    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    backgroundColor: Palette.cardSurface,
     borderRadius: 20,
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: Palette.cardBorder,
     marginBottom: 14,
   },
   statusHeader: {
+    flexWrap: 'wrap', gap: 8,
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 8,
@@ -356,19 +355,21 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   metricsRow: {
+    flexWrap: 'wrap',
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 14,
     gap: 8,
   },
   metricCard: {
+    minWidth: 100,
     flex: 1,
-    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    backgroundColor: Palette.cardSurface,
     borderRadius: 18,
     padding: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: Palette.cardBorder,
   },
   metricVal: {
     fontSize: 20,
@@ -393,16 +394,17 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   syncActionText: {
+    flexShrink: 1, textAlign: 'center',
     fontSize: 15,
     color: '#070F1E',
     fontWeight: '700',
   },
   resultCard: {
-    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    backgroundColor: Palette.cardSurface,
     borderRadius: 20,
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: Palette.cardBorder,
     marginBottom: 14,
   },
   resultHeader: {
@@ -427,11 +429,11 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   collectionsSection: {
-    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    backgroundColor: Palette.cardSurface,
     borderRadius: 20,
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: Palette.cardBorder,
     marginBottom: 14,
   },
   sectionTitle: {

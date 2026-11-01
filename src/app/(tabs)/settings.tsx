@@ -8,7 +8,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSettings } from '@/state/settingsContext';
-import { Palette } from '@/constants/theme';
+import { Layout, Palette } from '@/constants/theme';
+import { ScreenHeader } from '@/components/ui/ScreenHeader';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -17,19 +18,12 @@ export default function SettingsScreen() {
     setTemperatureUnit,
     windSpeedUnit,
     setWindSpeedUnit,
-    theme,
   } = useSettings();
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>System Settings</Text>
-          <Text style={styles.subtitle}>Preferences & Academic Evaluation Specs</Text>
-        </View>
-        <Ionicons name="settings" size={24} color={Palette.cyanGlow} />
-      </View>
+      <ScreenHeader title="Make it yours" subtitle="Your preferences, data tools, and app details" icon="options-outline" />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Section 1: Measurement Units */}
@@ -127,7 +121,7 @@ export default function SettingsScreen() {
 
         {/* Section 2: Data Tools Shortcuts */}
         <View style={styles.section}>
-          <Text style={styles.sectionHeader}>Academic Data Tools</Text>
+          <Text style={styles.sectionHeader}>Explore your data</Text>
 
           <TouchableOpacity
             style={styles.navRow}
@@ -135,7 +129,7 @@ export default function SettingsScreen() {
           >
             <View style={styles.navLeft}>
               <Ionicons name="code-download-outline" size={22} color={Palette.violetMisty} />
-              <View style={{ marginLeft: 12 }}>
+              <View style={{ marginLeft: 12, flex: 1 }}>
                 <Text style={styles.navTitle}>XML Data Explorer</Text>
                 <Text style={styles.navDesc}>Requirement B: Genuine REST XML inspection</Text>
               </View>
@@ -149,7 +143,7 @@ export default function SettingsScreen() {
           >
             <View style={styles.navLeft}>
               <Ionicons name="server-outline" size={22} color={Palette.emeraldFresh} />
-              <View style={{ marginLeft: 12 }}>
+              <View style={{ marginLeft: 12, flex: 1 }}>
                 <Text style={styles.navTitle}>Local SQLite Database</Text>
                 <Text style={styles.navDesc}>Requirement C: Tables, records & diagnostics</Text>
               </View>
@@ -163,7 +157,7 @@ export default function SettingsScreen() {
           >
             <View style={styles.navLeft}>
               <Ionicons name="cloud-upload-outline" size={22} color={Palette.amberWarning} />
-              <View style={{ marginLeft: 12 }}>
+              <View style={{ marginLeft: 12, flex: 1 }}>
                 <Text style={styles.navTitle}>Firebase Cloud Sync</Text>
                 <Text style={styles.navDesc}>Requirement D: Firestore synchronization</Text>
               </View>
@@ -274,6 +268,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   scrollContent: {
+    width: '100%', maxWidth: Layout.contentMaxWidth, alignSelf: 'center',
     paddingHorizontal: 16,
     paddingTop: 14,
     paddingBottom: 40,
@@ -290,19 +285,21 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   settingCard: {
-    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    backgroundColor: Palette.cardSurface,
     borderRadius: 20,
     padding: 16,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: Palette.cardBorder,
   },
   settingRow: {
+    flexWrap: 'wrap', gap: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   settingInfo: {
+    flexShrink: 1,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -313,7 +310,7 @@ const styles = StyleSheet.create({
   },
   settingDesc: {
     fontSize: 12,
-    color: 'rgba(226, 232, 240, 0.55)',
+    color: Palette.textMutedDark,
     marginTop: 2,
   },
   segmentToggle: {
@@ -322,9 +319,10 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 3,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: Palette.cardBorder,
   },
   segmentBtn: {
+    minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center',
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 12,
@@ -344,12 +342,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    backgroundColor: Palette.cardSurface,
     borderRadius: 20,
     padding: 16,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: Palette.cardBorder,
   },
   navLeft: {
     flexDirection: 'row',
@@ -367,13 +365,14 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   aboutCard: {
-    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    backgroundColor: Palette.cardSurface,
     borderRadius: 20,
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: Palette.cardBorder,
   },
   aboutRow: {
+    flexWrap: 'wrap', gap: 8,
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingVertical: 8,
@@ -385,17 +384,18 @@ const styles = StyleSheet.create({
     color: 'rgba(226, 232, 240, 0.65)',
   },
   aboutVal: {
+    flexShrink: 1,
     fontSize: 13,
     color: '#FFFFFF',
     fontWeight: '600',
   },
   attrCard: {
-    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    backgroundColor: Palette.cardSurface,
     borderRadius: 20,
     padding: 16,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: Palette.cardBorder,
   },
   attrTitle: {
     fontSize: 14,

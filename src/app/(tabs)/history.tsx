@@ -28,7 +28,8 @@ import {
   DbWeatherRecord,
   DbXmlWeatherRecord,
 } from '@/models/database.types';
-import { Palette } from '@/constants/theme';
+import { Layout, Palette } from '@/constants/theme';
+import { ScreenHeader } from '@/components/ui/ScreenHeader';
 import { useSettings } from '@/state/settingsContext';
 
 type HistoryTab = 'weather' | 'xml' | 'sync_queue' | 'diagnostics';
@@ -88,15 +89,10 @@ export default function HistoryScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       {/* Top Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>Local Database</Text>
-          <Text style={styles.subtitle}>Requirement C · SQLite Persistent Store</Text>
-        </View>
-        <TouchableOpacity style={styles.refreshBtn} onPress={loadDatabaseData}>
+      <ScreenHeader title="Your weather archive" subtitle="Local records, cached forecasts, and storage health" icon="server-outline"
+        action={<TouchableOpacity accessibilityRole="button" accessibilityLabel="Refresh local records" style={styles.refreshBtn} onPress={loadDatabaseData}>
           <Ionicons name="refresh" size={20} color={Palette.cyanGlow} />
-        </TouchableOpacity>
-      </View>
+        </TouchableOpacity>} />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -365,6 +361,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   refreshBtn: {
+    minWidth: 44, minHeight: 44,
     width: 38,
     height: 38,
     borderRadius: 19,
@@ -375,24 +372,27 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   scrollContent: {
+    width: '100%', maxWidth: Layout.contentMaxWidth, alignSelf: 'center',
     paddingHorizontal: 16,
     paddingTop: 14,
     paddingBottom: 40,
   },
   summaryGrid: {
+    flexWrap: 'wrap',
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 14,
     gap: 8,
   },
   summaryCard: {
+    minWidth: 110,
     flex: 1,
-    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    backgroundColor: Palette.cardSurface,
     borderRadius: 18,
     padding: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: Palette.cardBorder,
   },
   summaryVal: {
     fontSize: 16,
@@ -406,15 +406,17 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   tabBar: {
+    flexWrap: 'wrap', gap: 4,
     flexDirection: 'row',
-    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    backgroundColor: Palette.cardSurface,
     borderRadius: 20,
     padding: 3,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: Palette.cardBorder,
   },
   tabBtn: {
+    minHeight: 44, minWidth: 110,
     flex: 1,
     paddingVertical: 8,
     alignItems: 'center',
@@ -433,12 +435,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   recordCard: {
-    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    backgroundColor: Palette.cardSurface,
     borderRadius: 20,
     padding: 16,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: Palette.cardBorder,
   },
   recordHeader: {
     flexDirection: 'row',
@@ -470,6 +472,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   recordBody: {
+    flexWrap: 'wrap', gap: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginVertical: 4,
@@ -488,7 +491,7 @@ const styles = StyleSheet.create({
   },
   subText: {
     fontSize: 11,
-    color: 'rgba(226, 232, 240, 0.55)',
+    color: Palette.textMutedDark,
   },
   recordTimestamp: {
     color: 'rgba(226, 232, 240, 0.45)',
@@ -496,12 +499,12 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   queueCard: {
-    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    backgroundColor: Palette.cardSurface,
     borderRadius: 20,
     padding: 16,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: Palette.cardBorder,
   },
   queueHeader: {
     flexDirection: 'row',
@@ -547,11 +550,11 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   diagCard: {
-    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    backgroundColor: Palette.cardSurface,
     borderRadius: 20,
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: Palette.cardBorder,
   },
   diagTitle: {
     fontSize: 15,
@@ -596,10 +599,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
-    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    backgroundColor: Palette.cardSurface,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: Palette.cardBorder,
   },
   emptyTitle: {
     fontSize: 16,

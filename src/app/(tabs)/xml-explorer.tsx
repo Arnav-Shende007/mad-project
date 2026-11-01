@@ -25,7 +25,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useWeather } from '@/state/weatherContext';
 import { VERIFIED_XML_ENDPOINTS } from '@/api/xmlWeatherApi';
-import { Palette, Spacing } from '@/constants/theme';
+import { Layout, Palette, Spacing } from '@/constants/theme';
+import { ScreenHeader } from '@/components/ui/ScreenHeader';
 
 export default function XmlExplorerScreen() {
   const {
@@ -66,13 +67,9 @@ export default function XmlExplorerScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       {/* Top Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>XML Data Explorer</Text>
-          <Text style={styles.subtitle}>Requirement B · Genuine REST XML Pipeline</Text>
-        </View>
-        <TouchableOpacity
-          style={styles.refreshBtn}
+      <ScreenHeader title="Explore the source" subtitle="Inspect live XML, parsed records, and response details" icon="code-slash-outline"
+        action={<TouchableOpacity
+          accessibilityRole="button" accessibilityLabel="Refresh XML data" style={styles.refreshBtn}
           onPress={handleFetchXml}
           disabled={isXmlLoading}
         >
@@ -81,8 +78,7 @@ export default function XmlExplorerScreen() {
           ) : (
             <Ionicons name="refresh" size={20} color={Palette.cyanGlow} />
           )}
-        </TouchableOpacity>
-      </View>
+        </TouchableOpacity>} />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Academic Evaluation Banner */}
@@ -369,6 +365,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   refreshBtn: {
+    minWidth: 44, minHeight: 44,
     width: 38,
     height: 38,
     borderRadius: 19,
@@ -379,6 +376,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   scrollContent: {
+    width: '100%', maxWidth: Layout.contentMaxWidth, alignSelf: 'center',
     paddingHorizontal: 16,
     paddingTop: 14,
     paddingBottom: 40,
@@ -415,11 +413,11 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   endpointCard: {
-    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    backgroundColor: Palette.cardSurface,
     borderRadius: 20,
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: Palette.cardBorder,
     marginBottom: 10,
   },
   endpointCardActive: {
@@ -432,6 +430,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   endpointName: {
+    flex: 1,
     fontSize: 15,
     color: '#FFFFFF',
     fontWeight: '700',
@@ -483,6 +482,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   fetchActionText: {
+    flexShrink: 1, textAlign: 'center',
     fontSize: 15,
     color: '#070F1E',
     fontWeight: '700',
@@ -506,11 +506,11 @@ const styles = StyleSheet.create({
   statusBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    backgroundColor: Palette.cardSurface,
     borderRadius: 20,
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: Palette.cardBorder,
     marginBottom: 14,
   },
   statusTile: {
@@ -519,7 +519,7 @@ const styles = StyleSheet.create({
   },
   statusTileLabel: {
     fontSize: 11,
-    color: 'rgba(226, 232, 240, 0.55)',
+    color: Palette.textMutedDark,
     marginBottom: 2,
   },
   statusTileVal: {
@@ -528,11 +528,11 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   persistenceCard: {
-    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    backgroundColor: Palette.cardSurface,
     borderRadius: 20,
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: Palette.cardBorder,
     marginBottom: 14,
   },
   persistenceTitle: {
@@ -552,7 +552,7 @@ const styles = StyleSheet.create({
   },
   pItemLabel: {
     fontSize: 11,
-    color: 'rgba(226, 232, 240, 0.55)',
+    color: Palette.textMutedDark,
   },
   pItemVal: {
     fontSize: 13,
@@ -560,12 +560,14 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   tabBar: {
+    flexWrap: 'wrap', gap: 4,
     flexDirection: 'row',
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.08)',
     marginBottom: 14,
   },
   tabItem: {
+    minHeight: 44,
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderBottomWidth: 2,
@@ -588,11 +590,11 @@ const styles = StyleSheet.create({
     marginTop: Spacing.xs,
   },
   recordCard: {
-    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    backgroundColor: Palette.cardSurface,
     borderRadius: 20,
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: Palette.cardBorder,
     marginBottom: 10,
   },
   recordHeader: {
@@ -640,7 +642,7 @@ const styles = StyleSheet.create({
   },
   recordParam: {
     fontSize: 11,
-    color: 'rgba(226, 232, 240, 0.55)',
+    color: Palette.textMutedDark,
     marginRight: 14,
   },
   snippetBox: {
@@ -657,11 +659,11 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   rawContainer: {
-    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    backgroundColor: Palette.cardSurface,
     borderRadius: 20,
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: Palette.cardBorder,
   },
   rawHeader: {
     flexDirection: 'row',
@@ -695,11 +697,11 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   headersCard: {
-    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    backgroundColor: Palette.cardSurface,
     borderRadius: 20,
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: Palette.cardBorder,
   },
   headersTitle: {
     fontSize: 15,
@@ -726,10 +728,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
-    backgroundColor: 'rgba(16, 36, 70, 0.65)',
+    backgroundColor: Palette.cardSurface,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: Palette.cardBorder,
   },
   emptyText: {
     fontSize: 16,
