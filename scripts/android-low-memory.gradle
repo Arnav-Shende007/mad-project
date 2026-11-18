@@ -1,0 +1,14 @@
+// Optional init script for APK builds on machines with limited RAM.
+// Kept outside android/ so Expo Prebuild does not overwrite it.
+gradle.beforeProject { project ->
+    ['com.android.application', 'com.android.library'].each { pluginId ->
+        project.pluginManager.withPlugin(pluginId) {
+            def androidConfig = project.extensions.getByName('android')
+            androidConfig.defaultConfig.externalNativeBuild.cmake.arguments(
+                '-DCMAKE_JOB_POOLS=compile=2;link=1',
+                '-DCMAKE_JOB_POOL_COMPILE=compile',
+                '-DCMAKE_JOB_POOL_LINK=link'
+            )
+        }
+    }
+}

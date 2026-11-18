@@ -3,6 +3,10 @@
 > **Production-Quality Academic Mobile Application**  
 > Built with **React Native**, **Expo SDK 57**, **TypeScript**, **Expo Router**, **expo-sqlite**, **Firebase Cloud Firestore**, and **fast-xml-parser**.
 
+**Android download:** [Universal APK](https://github.com/Arnav-Shende007/mad-project/releases/download/v1.0.0-android-universal/AtmosIQ-universal.apk) — Android 7.0+, ARM32, ARM64, x86, and x86_64. Signed for testing. See the [Android build guide](docs/ANDROID_BUILD.md) to build it yourself.
+
+Assignment documentation: [PDF reports](output/pdf/atmosiq-assignments) and [Word documents](output/docx/individual-assignments).
+
 ---
 
 ## 1. Project Overview & Problem Statement
@@ -339,6 +343,8 @@ service cloud.firestore {
 ---
 
 ## 8. Installation & Execution Instructions
+
+For Android Studio setup and APK build commands, see [Android APK build](docs/ANDROID_BUILD.md).
 
 ### Prerequisites
 - Node.js v20+ or v22+

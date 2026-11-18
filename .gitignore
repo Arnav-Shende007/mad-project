@@ -3,6 +3,9 @@
 # dependencies
 node_modules/
 
+# Local IDE settings
+.idea/
+
 # Expo
 .expo/
 dist/
@@ -42,4 +45,10 @@ example
 
 # generated native folders
 /ios
-/android
+
+# Local Gradle download/cache directory
+.gradle-cache/
+
+# Compiled Android packages are distributed through GitHub Releases
+*.apk
+*.aab

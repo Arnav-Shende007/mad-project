@@ -1,0 +1,11 @@
+*.pdf binary
+*.docx binary
+*.zip binary
+*.png binary
+*.webp binary
+*.jar binary
+*.keystore binary
+
+# Keep the generated Gradle wrappers usable on their target platforms.
+android/gradlew text eol=lf
+android/gradlew.bat text eol=crlf

@@ -1,0 +1,42 @@
+[
+  {
+    "number": 1,
+    "title": "Reading data from open REST APIs",
+    "file": "01_Open_REST_API_Integration.pdf"
+  },
+  {
+    "number": 2,
+    "title": "Parsing XML and storing it in SQLite and Firebase",
+    "file": "02_XML_SQLite_and_Firebase.pdf"
+  },
+  {
+    "number": 3,
+    "title": "Analysing weather data before display",
+    "file": "03_Weather_Data_Analysis.pdf"
+  },
+  {
+    "number": 4,
+    "title": "Displaying analysis with charts and diagrams",
+    "file": "04_Charts_and_Diagrams.pdf"
+  },
+  {
+    "number": 5,
+    "title": "Designing a clear and responsive application UI",
+    "file": "05_Responsive_UI_Design.pdf"
+  },
+  {
+    "number": 6,
+    "title": "Running the application across platforms",
+    "file": "06_Cross_Platform_Compatibility.pdf"
+  },
+  {
+    "number": 7,
+    "title": "Deploying and demonstrating the app on a phone",
+    "file": "07_Mobile_Deployment_and_Demonstration.pdf"
+  },
+  {
+    "number": 0,
+    "title": "Project readiness and remaining implementation",
+    "file": "00_Project_Readiness_Audit.pdf"
+  }
+]
