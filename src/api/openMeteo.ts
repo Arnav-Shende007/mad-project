@@ -159,7 +159,7 @@ export async function fetchForecast(latitude: number, longitude: number, timezon
     'sunset',
   ].join(',');
 
-  const url = `${FORECAST_BASE}/forecast?latitude=${latitude}&longitude=${longitude}&current=${currentParams}&hourly=${hourlyParams}&daily=${dailyParams}&timezone=${encodeURIComponent(timezone)}&forecast_days=7`;
+  const url = `${FORECAST_BASE}/forecast?latitude=${latitude}&longitude=${longitude}&current=${currentParams}&hourly=${hourlyParams}&daily=${dailyParams}&timezone=${encodeURIComponent(timezone)}&forecast_days=7&past_days=1`;
 
   let res = await fetch(url);
   if (res.status === 503 || res.status === 429) {
@@ -281,9 +281,9 @@ export async function getCompleteWeatherData(location: LocationItem): Promise<Co
     pressure: Number(cur.surface_pressure ?? 1013),
     isDay: Boolean(cur.is_day ?? 1),
     cloudCover: cur.cloud_cover !== undefined ? Number(cur.cloud_cover) : undefined,
-    uvIndex: forecastResult.daily?.uv_index_max?.[0] !== undefined ? Number(forecastResult.daily.uv_index_max[0]) : undefined,
-    dewPoint: cur.dew_point_2m !== undefined ? Number(cur.dew_point_2m) : undefined,
-    visibility: cur.visibility !== undefined ? Number(cur.visibility) / 1000 : undefined,
+    uvIndex: forecastResult.hourly?.uv_index?.[forecastResult.hourly.time.indexOf(cur.time.slice(0,13) + ":00")] ?? undefined,
+    dewPoint: cur.dew_point_2m != null ? Number(cur.dew_point_2m) : undefined,
+    visibility: cur.visibility != null ? Number(cur.visibility) / 1000 : undefined,
   };
 
   // Hourly Forecast (take next 48 hours)
@@ -318,6 +318,8 @@ export async function getCompleteWeatherData(location: LocationItem): Promise<Co
   const daily: DailyForecastItem[] = [];
 
   for (let i = 0; i < dailyTimes.length; i++) {
+    if (dailyTimes[i] < current.time.slice(0,10)) continue;
+    if ([dailyData.temperature_2m_max, dailyData.temperature_2m_min, dailyData.precipitation_probability_max, dailyData.wind_speed_10m_max].some(series => !Number.isFinite(series?.[i]))) continue;
     daily.push({
       date: dailyTimes[i],
       weatherCode: Number(dailyData.weather_code?.[i] ?? 0),
@@ -365,10 +367,11 @@ export async function getCompleteWeatherData(location: LocationItem): Promise<Co
   }
 
   return {
-    location,
+    location: { ...location, timezone: forecastResult.timezone || location.timezone },
     current,
     hourly,
     daily,
+    previousHigh: dailyTimes[0] < current.time.slice(0,10) ? dailyData.temperature_2m_max?.[0] : undefined,
     airQuality,
     fetchedAt: new Date().toISOString(),
     dataSource: 'Open-Meteo REST API (WMO Standard)',

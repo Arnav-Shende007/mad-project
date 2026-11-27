@@ -63,13 +63,16 @@ export function WeatherProvider({ children }: { children: React.ReactNode }) {
   /**
    * Load weather data for a specific location
    */
+  const latestRequest = React.useRef(0);
   const loadWeatherData = useCallback(async (loc: LocationItem) => {
+    const requestId = ++latestRequest.current;
     setIsLoading(true);
     setError(null);
 
     try {
       // 1. Fetch live weather from Open-Meteo REST API
       const dataset = await getCompleteWeatherData(loc);
+      if (requestId !== latestRequest.current) return;
       setWeatherData(dataset);
       setIsOffline(false);
       setLastUpdated(dataset.fetchedAt);
@@ -85,11 +88,13 @@ export function WeatherProvider({ children }: { children: React.ReactNode }) {
         console.warn('[WeatherProvider] SQLite persistence notice:', dbErr.message);
       }
     } catch (apiErr: any) {
+      if (requestId !== latestRequest.current) return;
       console.warn('[WeatherProvider] Live fetch failed, attempting SQLite cache fallback:', apiErr.message);
 
       // Fallback to SQLite cache for offline resiliency
       try {
         const cached = await sqliteService.getLatestCachedWeather(loc.id);
+        if (requestId !== latestRequest.current) return;
         if (cached) {
           const cachedDataset: CompleteWeatherDataset = {
             location: loc,
@@ -118,11 +123,12 @@ export function WeatherProvider({ children }: { children: React.ReactNode }) {
         } else {
           setError(`Unable to connect: ${apiErr.message}`);
         }
-      } catch (cacheErr: any) {
+      } catch {
+        if (requestId !== latestRequest.current) return;
         setError(`Network failure: ${apiErr.message}`);
       }
     } finally {
-      setIsLoading(false);
+      if (requestId === latestRequest.current) setIsLoading(false);
     }
   }, []);
 
@@ -134,6 +140,7 @@ export function WeatherProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const selectLocation = async (loc: LocationItem) => {
+    if (loc.id !== currentLocation.id) { setWeatherData(null); setAnalytics(null); setLastUpdated(null); }
     setCurrentLocation(loc);
     await loadWeatherData(loc);
   };

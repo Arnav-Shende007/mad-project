@@ -12,11 +12,13 @@ import Svg, {
 } from 'react-native-svg';
 
 interface SunCycleCardProps {
+  localTime?: string;
   sunriseTime?: string;
   sunsetTime?: string;
 }
 
 export const SunCycleCard: React.FC<SunCycleCardProps> = ({
+  localTime,
   sunriseTime,
   sunsetTime,
 }) => {
@@ -24,7 +26,7 @@ export const SunCycleCard: React.FC<SunCycleCardProps> = ({
   const svgHeight = 75;
 
   // Format sunrise / sunset
-  const formatTime = (timeStr?: string, fallback: string = '6:00 am') => {
+  const formatTime = (timeStr?: string, fallback: string = 'Unavailable') => {
     if (!timeStr) return fallback;
     const d = new Date(timeStr);
     if (isNaN(d.getTime())) {
@@ -41,20 +43,21 @@ export const SunCycleCard: React.FC<SunCycleCardProps> = ({
     }).toLowerCase();
   };
 
-  const formattedSunrise = formatTime(sunriseTime, '6:28 am');
-  const formattedSunset = formatTime(sunsetTime, '6:11 pm');
+  const formattedSunrise = formatTime(sunriseTime);
+  const formattedSunset = formatTime(sunsetTime);
 
   // Compute sun orb position along parabola y = a*(x-h)^2 + k
   // Path from (20, 58) to peak (160, 18) to (300, 58)
-  const now = new Date();
-  const currentHours = now.getHours() + now.getMinutes() / 60;
-  // Day duration assumption: 6:00 to 18:30 (12.5 hrs)
-  const dayProgress = Math.min(1, Math.max(0, (currentHours - 6.0) / 12.5));
+  const rise = Date.parse(sunriseTime || '');
+  const set = Date.parse(sunsetTime || '');
+  const now = Date.parse(localTime || '');
+  const hasTimes = Number.isFinite(now) && set > rise;
+  const dayProgress = hasTimes ? Math.min(1, Math.max(0, (now - rise) / (set - rise))) : 0;
   const sunX = 20 + dayProgress * 280;
   // Parabola formula: at x=20 y=58, at x=160 y=18, at x=300 y=58
   const normX = (sunX - 160) / 140;
   const sunY = 18 + normX * normX * 40;
-  const isNight = currentHours < 6.0 || currentHours > 18.5;
+  const isNight = now < rise || now > set;
 
   return (
     <View style={styles.card}>
@@ -93,21 +96,21 @@ export const SunCycleCard: React.FC<SunCycleCardProps> = ({
           />
 
           {/* Sun marker orb (if daytime, display glowing sun; if night, subtle position) */}
-          <Circle
+          {hasTimes && <Circle
             cx={sunX}
             cy={sunY}
             r="12"
             fill="url(#sunGlow)"
             opacity={isNight ? 0.4 : 1}
-          />
-          <Circle
+          />}
+          {hasTimes && <Circle
             cx={sunX}
             cy={sunY}
             r="4.5"
             fill={isNight ? '#94A3B8' : '#FEF9C3'}
             stroke="#F59E0B"
             strokeWidth="1.5"
-          />
+          />}
         </Svg>
       </View>
 

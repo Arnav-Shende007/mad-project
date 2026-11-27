@@ -35,7 +35,8 @@ import { WeatherHeroHeader } from '@/components/weather/WeatherHeroHeader';
 import { HourlyTrendChart } from '@/components/weather/HourlyTrendChart';
 import { TemperatureInsightCard } from '@/components/weather/TemperatureInsightCard';
 import { DailyForecastCard } from '@/components/weather/DailyForecastCard';
-import { RunningActivityCard } from '@/components/weather/RunningActivityCard';
+import { DayPlanner } from '@/components/weather/DayPlanner';
+import { ForecastExtras } from '@/components/weather/ForecastExtras';
 import { RadarMapCard } from '@/components/weather/RadarMapCard';
 import { AqiPollenCard } from '@/components/weather/AqiPollenCard';
 import { WeatherMetricsGrid } from '@/components/weather/WeatherMetricsGrid';
@@ -111,9 +112,9 @@ export default function HomeScreen() {
     );
   };
 
-  const current = weatherData?.current;
-  const hourly = weatherData?.hourly || [];
-  const daily = weatherData?.daily || [];
+  const current = weatherData?.location.id === currentLocation.id ? weatherData.current : undefined;
+  const hourly = current ? weatherData?.hourly || [] : [];
+  const daily = current ? weatherData?.daily || [] : [];
   const airQuality = weatherData?.airQuality?.find(reading => reading.time.slice(0, 13) === current?.time.slice(0, 13));
   const todayDaily = daily[0];
   const tomorrowDaily = daily[1];
@@ -275,6 +276,8 @@ export default function HomeScreen() {
           />
         )}
 
+        {weatherData && weatherData.location.id === currentLocation.id && <DayPlanner key={weatherData.location.id + weatherData.fetchedAt} data={weatherData} />}
+
         {/* 2. Hourly Forecast with continuous temperature curve & 48-hour forecast link */}
         {hourly.length > 0 && (
           <HourlyTrendChart
@@ -303,14 +306,10 @@ export default function HomeScreen() {
         <View>
 
         {/* 5. Running Fitness Activity Card */}
-        <RunningActivityCard current={current} hourly={hourly} />
+        {weatherData && weatherData.location.id === currentLocation.id && <ForecastExtras key={currentLocation.id} data={weatherData} />}
 
         {/* 6. Radar & Heat Maps Card */}
-        <RadarMapCard
-          cityName={currentLocation.name}
-          temperature={current?.temperature ?? 25}
-          unitSymbol="°"
-        />
+        <RadarMapCard location={currentLocation} />
         </View>
         </ResponsiveColumns>
 
@@ -332,6 +331,7 @@ export default function HomeScreen() {
         <View>
         {/* 9. Celestial Sun Cycle Parabolic Card */}
         <SunCycleCard
+          localTime={current?.time}
           sunriseTime={todayDaily?.sunrise}
           sunsetTime={todayDaily?.sunset}
         />

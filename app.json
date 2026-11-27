@@ -35,7 +35,42 @@
           "imageWidth": 76
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-widgets",
+        {
+          "widgets": [
+            {
+              "name": "AtmosForecast",
+              "displayName": "AtmosIQ forecast",
+              "description": "Latest saved city forecast",
+              "ios": {
+                "supportedFamilies": [
+                  "systemSmall",
+                  "systemMedium"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "expo-sharing",
+      [
+        "react-native-android-widget",
+        {
+          "widgets": [
+            {
+              "name": "AtmosForecast",
+              "label": "AtmosIQ forecast",
+              "minWidth": "180dp",
+              "minHeight": "90dp",
+              "description": "Latest saved city forecast",
+              "resizeMode": "horizontal|vertical"
+            }
+          ]
+        }
+      ],
+      "expo-notifications"
     ],
     "experiments": {
       "typedRoutes": true,

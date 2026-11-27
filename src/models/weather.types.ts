@@ -102,6 +102,7 @@ export interface CompleteWeatherDataset {
   hourly: HourlyForecastItem[];
   daily: DailyForecastItem[];
   airQuality?: AirQualityReading[];
+  previousHigh?: number | null;
   historical?: HistoricalWeatherDay[];
   fetchedAt: string;
   dataSource: string;

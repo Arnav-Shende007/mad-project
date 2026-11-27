@@ -23,10 +23,11 @@ export const WeatherMetricsGrid: React.FC<WeatherMetricsGridProps> = ({
   unitSymbol = '°',
 }) => {
   const { formatTemperature, formatWindSpeed } = useSettings();
+  if (!current) return null;
   // 1. UV Index
   const uv = current?.uvIndex ?? 1;
   let uvCategory = 'Low';
-  let uvSubtitle = 'Low rest of day';
+  let uvSubtitle = 'Current forecast';
   if (uv >= 11) {
     uvCategory = 'Extreme';
     uvSubtitle = 'Stay indoors';
@@ -80,13 +81,13 @@ export const WeatherMetricsGrid: React.FC<WeatherMetricsGridProps> = ({
 
   // 5. Pressure
   const pressure = current?.pressure ?? 1010.7;
-  let pressureSubtitle = 'Stable atmospheric pressure';
+  let pressureSubtitle = 'Surface pressure';
   if (pressure > 1018) {
     pressureSubtitle = 'High pressure system';
   } else if (pressure < 1005) {
     pressureSubtitle = 'Low pressure system';
   } else {
-    pressureSubtitle = 'Currently steady';
+    pressureSubtitle = 'Surface pressure';
   }
 
   // 6. Visibility
@@ -108,11 +109,11 @@ export const WeatherMetricsGrid: React.FC<WeatherMetricsGridProps> = ({
             <Ionicons name="sunny-outline" size={15} color="#FBBF24" />
             <Text style={styles.headerLabel}>UV Index</Text>
           </View>
-          <Text style={styles.subtitle}>{uvSubtitle}</Text>
-          <Text style={styles.largeValue}>{uvCategory}</Text>
+          <Text style={styles.subtitle}>{current.uvIndex == null ? 'Unavailable' : uvSubtitle}</Text>
+          <Text style={styles.largeValue}>{current.uvIndex == null ? '—' : uvCategory}</Text>
 
           {/* UV Multi-Color Gradient Bar */}
-          <View style={styles.uvBarContainer}>
+          {current.uvIndex != null && <View style={styles.uvBarContainer}>
             <Svg width="100%" height={12} viewBox="0 0 140 12">
               <Defs>
                 <LinearGradient id="uvGrad" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -133,7 +134,7 @@ export const WeatherMetricsGrid: React.FC<WeatherMetricsGridProps> = ({
                 strokeWidth="1.5"
               />
             </Svg>
-          </View>
+          </View>}
         </View>
 
         {/* Humidity Card */}
@@ -142,7 +143,7 @@ export const WeatherMetricsGrid: React.FC<WeatherMetricsGridProps> = ({
             <Ionicons name="water-outline" size={15} color="#38BDF8" />
             <Text style={styles.headerLabel}>Humidity</Text>
           </View>
-          <Text style={styles.subtitle}>Similar to yesterday</Text>
+          <Text style={styles.subtitle}>Relative humidity</Text>
           <Text style={styles.largeValue}>{Math.round(humidity)}%</Text>
 
           {/* Humidity Progress Bar */}
@@ -258,10 +259,10 @@ export const WeatherMetricsGrid: React.FC<WeatherMetricsGridProps> = ({
             <Ionicons name="eye-outline" size={15} color="#FCD34D" />
             <Text style={styles.headerLabel}>Visibility</Text>
           </View>
-          <Text style={styles.subtitle}>{visSubtitle}</Text>
+          <Text style={styles.subtitle}>{current.visibility == null ? 'Unavailable' : visSubtitle}</Text>
           <View style={styles.spacer} />
           <Text style={styles.largeValue}>
-            {visibility.toFixed(2)} km
+            {current.visibility == null ? '—' : visibility.toFixed(2) + ' km'}
           </Text>
         </View>
       </View>
