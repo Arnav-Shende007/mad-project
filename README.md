@@ -5,6 +5,8 @@
 
 **Android download:** [Universal APK](https://github.com/Arnav-Shende007/mad-project/releases/download/v1.0.0-android-universal/AtmosIQ-universal.apk) — Android 7.0+, ARM32, ARM64, x86, and x86_64. Signed for testing. See the [Android build guide](docs/ANDROID_BUILD.md) to build it yourself.
 
+**Forecast planner:** [Features, native widgets and Groq setup](docs/FORECAST_PLANNER.md).
+
 **iPhone testing:** Follow the [iOS testing guide](docs/IOS_TESTING.md) to run the app in Expo Go from Windows using `npm run ios:go`.
 
 Assignment documentation: [PDF reports](output/pdf/atmosiq-assignments) and [Word documents](output/docx/individual-assignments).

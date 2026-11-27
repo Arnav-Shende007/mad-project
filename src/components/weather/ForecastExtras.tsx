@@ -3,6 +3,7 @@ import { Linking, Platform, Text, View } from 'react-native';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Choice, Panel, ui } from './WeatherPanel';
+import { getWeatherConditionInfo } from '@/constants/weatherCodes';
 import { modes, reconcileReminders, type Reminder } from '@/forecast/reminders';
 import { useSettings } from '@/state/settingsContext';
 import type { CompleteWeatherDataset } from '@/models/weather.types';
@@ -32,12 +33,14 @@ export function ForecastExtras({ data }: { data: CompleteWeatherDataset }) {
   const temperature = formatTemperature(data.current.temperature);
   useEffect(() => {
     if (!nativeBuild || !data.daily.length) return;
+    const change = data.hourly.find(hour => hour.time > data.current.time && hour.weatherCode !== data.current.weatherCode);
+    const changeText = change ? ' · ' + getWeatherConditionInfo(change.weatherCode).description + ' ' + change.time.slice(11, 16) : '';
     void import('@/forecast/widget')
       .then((w) =>
         w.updateWidget({
           city: data.location.name,
           temperature,
-          detail: data.daily[0].precipitationProbabilityMax + '% rain',
+          detail: data.daily[0].precipitationProbabilityMax + '% rain' + changeText,
           time: data.current.time.replace('T', ' '),
         }),
       )

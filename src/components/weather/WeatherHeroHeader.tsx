@@ -34,8 +34,8 @@ export function WeatherHeroHeader({
   todayDaily,
   formatTemperature,
 }: WeatherHeroHeaderProps) {
-  const highTemp = todayDaily ? formatTemperature(todayDaily.temperatureMax) : formatTemperature(current.temperature + 4);
-  const lowTemp = todayDaily ? formatTemperature(todayDaily.temperatureMin) : formatTemperature(current.temperature - 4);
+  const highTemp = todayDaily ? formatTemperature(todayDaily.temperatureMax) : '—';
+  const lowTemp = todayDaily ? formatTemperature(todayDaily.temperatureMin) : '—';
   const feelsLike = formatTemperature(current.apparentTemperature);
   const condition = getWeatherConditionInfo(current.weatherCode);
 
