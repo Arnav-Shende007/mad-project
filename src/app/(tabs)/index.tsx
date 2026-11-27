@@ -114,7 +114,7 @@ export default function HomeScreen() {
   const current = weatherData?.current;
   const hourly = weatherData?.hourly || [];
   const daily = weatherData?.daily || [];
-  const airQuality = weatherData?.airQuality?.[0];
+  const airQuality = weatherData?.airQuality?.find(reading => reading.time.slice(0, 13) === current?.time.slice(0, 13));
   const todayDaily = daily[0];
   const tomorrowDaily = daily[1];
 
@@ -339,11 +339,7 @@ export default function HomeScreen() {
         <View>
 
         {/* 10. Celestial Moon Phase Card */}
-        <MoonPhaseCard
-          phaseName="Waning crescent"
-          moonriseTime="10:28 am"
-          moonsetTime="9:29 pm"
-        />
+        <MoonPhaseCard day={todayDaily} />
         </View>
         </ResponsiveColumns>
 

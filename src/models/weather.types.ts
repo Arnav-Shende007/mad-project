@@ -65,6 +65,9 @@ export interface DailyForecastItem {
   windGustsMax?: number;
   windDirectionDominant?: number;
   uvIndexMax?: number;
+  moonrise?: string;
+  moonset?: string;
+  moonPhase?: number;
   sunrise?: string;
   sunset?: string;
 }
@@ -74,6 +77,9 @@ export interface AirQualityReading {
   pm2_5: number | null;
   pm10: number | null;
   europeanAqi: number | null;
+  birch?: number | null;
+  grass?: number | null;
+  ragweed?: number | null;
   usAqi: number | null;
   carbonMonoxide?: number | null;
   nitrogenDioxide?: number | null;

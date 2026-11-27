@@ -154,6 +154,7 @@ export async function fetchForecast(latitude: number, longitude: number, timezon
     'wind_gusts_10m_max',
     'wind_direction_10m_dominant',
     'uv_index_max',
+    'moon_phase', 'moonrise', 'moonset',
     'sunrise',
     'sunset',
   ].join(',');
@@ -188,7 +189,7 @@ export async function fetchAirQuality(latitude: number, longitude: number, timez
     'sulphur_dioxide',
     'ozone',
     'european_aqi',
-    'us_aqi',
+    'us_aqi', 'grass_pollen', 'birch_pollen', 'ragweed_pollen',
   ].join(',');
 
   const url = `${AIR_QUALITY_BASE}/air-quality?latitude=${latitude}&longitude=${longitude}&hourly=${params}&timezone=${encodeURIComponent(timezone)}&forecast_days=3`;
@@ -263,6 +264,7 @@ export async function getCompleteWeatherData(location: LocationItem): Promise<Co
 
   // Current Weather
   const cur = forecastResult.current || {};
+  if (!cur.time || !Number.isFinite(cur.temperature_2m) || !Number.isFinite(cur.weather_code)) throw new Error('Current forecast unavailable');
   const weatherCode = Number(cur.weather_code ?? 0);
   const conditionInfo = getWeatherConditionInfo(weatherCode);
 
@@ -289,8 +291,10 @@ export async function getCompleteWeatherData(location: LocationItem): Promise<Co
   const hourlyTimes: string[] = hourlyData.time || [];
   const hourly: HourlyForecastItem[] = [];
 
-  const maxHours = Math.min(hourlyTimes.length, 48);
-  for (let i = 0; i < maxHours; i++) {
+  const start = hourlyTimes.findIndex(time => time >= current.time.slice(0, 13) + ":00");
+  const maxHours = start < 0 ? 0 : Math.min(hourlyTimes.length, start + 48);
+  for (let i = Math.max(0, start); i < maxHours; i++) {
+    if ([hourlyData.temperature_2m, hourlyData.apparent_temperature, hourlyData.precipitation_probability, hourlyData.wind_speed_10m, hourlyData.relative_humidity].some(series => !Number.isFinite(series?.[i]))) continue;
     hourly.push({
       time: hourlyTimes[i],
       temperature: Number(hourlyData.temperature_2m?.[i] ?? 0),
@@ -327,6 +331,9 @@ export async function getCompleteWeatherData(location: LocationItem): Promise<Co
       windGustsMax: dailyData.wind_gusts_10m_max?.[i] !== undefined ? Number(dailyData.wind_gusts_10m_max[i]) : undefined,
       windDirectionDominant: dailyData.wind_direction_10m_dominant?.[i] !== undefined ? Number(dailyData.wind_direction_10m_dominant[i]) : undefined,
       uvIndexMax: dailyData.uv_index_max?.[i] !== undefined ? Number(dailyData.uv_index_max[i]) : undefined,
+      moonPhase: dailyData.moon_phase?.[i],
+      moonrise: dailyData.moonrise?.[i],
+      moonset: dailyData.moonset?.[i],
       sunrise: dailyData.sunrise?.[i],
       sunset: dailyData.sunset?.[i],
     });
@@ -342,14 +349,17 @@ export async function getCompleteWeatherData(location: LocationItem): Promise<Co
     for (let i = 0; i < maxAq; i++) {
       airQuality.push({
         time: aqTimes[i],
-        pm2_5: aqHourly.pm2_5?.[i] !== undefined ? Number(aqHourly.pm2_5[i]) : null,
-        pm10: aqHourly.pm10?.[i] !== undefined ? Number(aqHourly.pm10[i]) : null,
-        europeanAqi: aqHourly.european_aqi?.[i] !== undefined ? Number(aqHourly.european_aqi[i]) : null,
-        usAqi: aqHourly.us_aqi?.[i] !== undefined ? Number(aqHourly.us_aqi[i]) : null,
-        carbonMonoxide: aqHourly.carbon_monoxide?.[i] !== undefined ? Number(aqHourly.carbon_monoxide[i]) : null,
-        nitrogenDioxide: aqHourly.nitrogen_dioxide?.[i] !== undefined ? Number(aqHourly.nitrogen_dioxide[i]) : null,
-        sulphurDioxide: aqHourly.sulphur_dioxide?.[i] !== undefined ? Number(aqHourly.sulphur_dioxide[i]) : null,
-        ozone: aqHourly.ozone?.[i] !== undefined ? Number(aqHourly.ozone[i]) : null,
+        grass: aqHourly.grass_pollen?.[i],
+        birch: aqHourly.birch_pollen?.[i],
+        ragweed: aqHourly.ragweed_pollen?.[i],
+        pm2_5: aqHourly.pm2_5?.[i] ?? null,
+        pm10: aqHourly.pm10?.[i] ?? null,
+        europeanAqi: aqHourly.european_aqi?.[i] ?? null,
+        usAqi: aqHourly.us_aqi?.[i] ?? null,
+        carbonMonoxide: aqHourly.carbon_monoxide?.[i] ?? null,
+        nitrogenDioxide: aqHourly.nitrogen_dioxide?.[i] ?? null,
+        sulphurDioxide: aqHourly.sulphur_dioxide?.[i] ?? null,
+        ozone: aqHourly.ozone?.[i] ?? null,
       });
     }
   }
